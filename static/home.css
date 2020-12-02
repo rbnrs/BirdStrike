@@ -1,0 +1,75 @@
+#map {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    pointer-events: auto;
+}
+
+.box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.9;
+    width: 100% !important;
+    /* for demo purpose  */
+}
+
+.stack-top {
+    z-index: 9;
+    margin-top: 80px;
+    /* for demo purpose  */
+}
+
+.side-div {
+    height: 175px;
+    width: 250px;
+    background-color: #343333;
+    margin-top: 20px;
+    margin-left: 50px;
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 10px;
+}
+
+.legend {
+    margin-right: 50px;
+}
+
+.box-label {
+    color: white;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.risk-class-st1 {
+    color: #FF003D;
+    text-align: end;
+    font-size: 45px;
+    margin-top: 5px;
+}
+
+.info-side-div {
+    color: grey;
+    text-align: end;
+}
+
+.birdstrike-highest {
+    color: #3F9B93;
+    text-align: end;
+    margin-top: 5px;
+}
+
+.last-update {
+    color: #3F9B93;
+    text-align: end;
+    font-size: 35px;
+    margin-top: 5px;
+}
+
+.birdstrike-direction {
+    color: #3F9B93;
+    text-align: end;
+    font-size: 35px;
+    margin-top: 5px;
+}

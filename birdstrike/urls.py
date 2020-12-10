@@ -1,4 +1,4 @@
-"""mysite URL Configuration
+"""Birstrike URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 
 urlpatterns = [
@@ -23,3 +24,5 @@ urlpatterns = [
     path('', views.default),
     path('notFound/', views.notFound)
 ]
+
+urlpatterns += staticfiles_urlpatterns()

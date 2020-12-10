@@ -11,13 +11,17 @@
     left: 0;
     opacity: 0.9;
     width: 100% !important;
-    /* for demo purpose  */
 }
 
 .stack-top {
     z-index: 9;
     margin-top: 80px;
-    /* for demo purpose  */
+}
+
+.info-card {
+    display: inline-flex;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .side-div {
@@ -34,6 +38,8 @@
 
 .legend {
     margin-right: 50px;
+    pointer-events: auto !important;
+    width: 20%;
 }
 
 .box-label {
@@ -72,4 +78,66 @@
     text-align: end;
     font-size: 35px;
     margin-top: 5px;
+}
+
+.height-legend {
+    display: grid;
+    padding: 30px;
+    width: 50%;
+    margin-left: auto !important;
+    margin-top: 150px !important;
+}
+
+.legend-text {
+    color: white;
+}
+
+.color-ft-0-1[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #42FF00;
+    border: 2px solid #42FF00;
+}
+
+.color-ft-1-2[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #A1FF0F;
+    border: 2px solid #A1FF0F;
+}
+
+.color-ft-2-3[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #D8FF00;
+    border: 2px solid #D8FF00;
+}
+
+.color-ft-3-4[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #EDFF00;
+    border: 2px solid #EDFF00;
+}
+
+.color-ft-4-5[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FFE207;
+    border: 2px solid #FFE207;
+}
+
+.color-ft-5-6[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FFBF00;
+    border: 2px solid #FFBF00;
+}
+
+.color-ft-6-7[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FF8900;
+    border: 2px solid #FF8900;
+}
+
+.color-ft-7-8[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FF3802;
+    border: 2px solid #FF3802;
+}
+
+.color-ft-8-9[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FF003D;
+    border: 2px solid #FF003D;
+}
+
+.color-ft-9-10[type="checkbox"].filled-in:checked+span:not(.lever):after {
+    background-color: #FF03B9;
+    border: 2px solid #FF03B9;
 }

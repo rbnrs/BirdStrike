@@ -11,9 +11,9 @@
  </head>
 
  <body>
-     <div class="box stack-top">
-         <div style="display: inline-flex; width:100%;justify-content: space-between;  pointer-events:none;  ">
-             <div>
+     <div class="box stack-top" style="pointer-events: none !important;">
+         <div class="info-card">
+             <div style="pointer-events: auto !important;">
                  <div class="side-div z-depth-5">
                      <p class="box-label">Aktuelles Risiko:</p>
                      <h2 class="risk-class-st1">Hoch</h2>
@@ -34,13 +34,12 @@
                  </div>
              </div>
              <div class="legend">
-                 <div>
-                     <!-- Dropdown Trigger -->
-                     <a class='dropdown-trigger btn' href='#' data-target='dropdown1' style="background-color: #3F9B93; width:150px">100 ms</a>
+                 <div style="float: right">
+                     <a class='dropdown-trigger btn' href='#' data-target='dropdown1'
+                         style="background-color: #3F9B93; width:150px">100 ms</a>
                      <button class="waves-effect waves-light btn" style="background-color: #3F9B93">Pause</button>
                      <button class="waves-effect waves-light btn" style="background-color: #3F9B93">Clear</button>
 
-                     <!-- Dropdown Structure -->
                      <ul id='dropdown1' class='dropdown-content'>
                          <li><a href="#!">100 ms</a></li>
                          <li><a href="#!">200 ms</a></li>
@@ -51,16 +50,85 @@
                          <li><a href="#!">10000 ms</a></li>
                      </ul>
                  </div>
+                 <div>
+                     <div>
+                         <div class="card white darken-1 height-legend" style="background-color: #343333 !important;">
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-0-1" />
+                                     <span class="legend-text">
+                                         < 1 kft</span> </label> </p> <p>
+                                             <label>
+                                                 <input type="checkbox" class="filled-in color-ft-1-2" />
+                                                 <span class="legend-text">1 - 3 kft</span>
+                                             </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-2-3" />
+                                     <span class="legend-text">3 - 5 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-3-4" />
+                                     <span class="legend-text">5 - 10 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-4-5" />
+                                     <span class="legend-text">10 - 15 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-5-6" />
+                                     <span class="legend-text">15 - 20 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-6-7" />
+                                     <span class="legend-text">20 - 25 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-7-8" />
+                                     <span class="legend-text">25 - 30 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-8-9" />
+                                     <span class="legend-text">30 - 35 kft</span>
+                                 </label>
+                             </p>
+                             <p>
+                                 <label>
+                                     <input type="checkbox" class="filled-in color-ft-9-10" />
+                                     <span class="legend-text">> 35 kft</span>
+                                 </label>
+                             </p>
+                         </div>
+                     </div>
+                 </div>
              </div>
          </div>
      </div>
      <div id="map" class="map box"></div>
      <script>
-         var dLat = "{{ lat }}"
-         var dLng = "{{ lng }}"
+         var aBirds = "{{ birds }}"
+         aBirds = JSON.parse(aBirds.replaceAll("&#x27;", "\""));
          Home.init();
-         // Home.setMapMarker(dLat, dLng); 
-
+        
+        //set Marker
+        //TODO Checkbox is true = setmarker
+         for (var oBird in aBirds) {
+             var sColor = Home.getColorBasedOnHeight(aBirds[oBird].alt); 
+             Home.setMapMarker(aBirds[oBird].lat, aBirds[oBird].lng, sColor);
+         }
 
          document.addEventListener('DOMContentLoaded', function () {
              var elems = document.querySelectorAll('.dropdown-trigger');

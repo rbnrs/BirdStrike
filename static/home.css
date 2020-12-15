@@ -39,7 +39,7 @@
 .legend {
     margin-right: 50px;
     pointer-events: auto !important;
-    width: 20%;
+    width: auto;
 }
 
 .box-label {
@@ -51,13 +51,26 @@
 .risk-class-st1 {
     color: #FF003D;
     text-align: end;
-    font-size: 45px;
+    font-size: 42px;
     margin-top: 5px;
 }
 
 .info-side-div {
     color: grey;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
     text-align: end;
+}
+
+.info-slider-radius {
+    margin-top: 20px;
+    margin-left: 50px;
+    display: none;
+}
+
+.info-risk-nos {
+    color: rgb(212, 212, 212);
+    font-weight: bold;
 }
 
 .birdstrike-highest {

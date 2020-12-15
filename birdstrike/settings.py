@@ -36,23 +36,23 @@ SECRET_KEY = '6j59=cyh@@=^o2hsnx8f68hj(472-ck6n=%(cp)$v*%9y@ajrn'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ( os.path.join('static'), )
 
+ALLOWED_HOSTS = []
+
 # Application definition
 
 INSTALLED_APPS = [
+    'birdstrike.apps.BirdstrikesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'leaflet',
+    'leaflet'
 ]
 
 MIDDLEWARE = [
@@ -71,7 +71,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            'templates'
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -87,14 +87,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'birdstrike.wsgi.application'
 
+SECURE_SSL_REDIRECT = True
+
+SESSION_COOKIE_SECURE = False 
+CSRF_COOKIE_SECURE = False 
+SECURE_SSL_REDIRECT = False
+
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': 'birdstrike',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
 
@@ -136,4 +146,3 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-

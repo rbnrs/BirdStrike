@@ -1,8 +1,7 @@
- {% load leaflet_tags %}
  <html>
 
  <head>
-     {% leaflet_js %} {% leaflet_css %} {% load static %}
+     {% load static %}
      <link rel="stylesheet" href="{% static 'home.css' %}">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
      <link rel="stylesheet" href="{% static 'mapbox-gl.css' %}">
@@ -52,9 +51,9 @@
              </div>
              <div class="legend">
                  <div style="float: right">
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.setGeoJsonTimeMarkers()">Start</button>
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93">Pause</button>
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93">Clear</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.startTimeLapse()">Start</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.pauseTimeLapse()">Pause</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.clearMapView()">Clear</button>
 
                      <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1'
                          style="background-color: #3F9B93; width:200px; margin-left: 40px">Zeitraffer auswählen</a>

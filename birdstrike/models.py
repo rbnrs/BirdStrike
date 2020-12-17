@@ -18,3 +18,4 @@ class BirdsLog(models.Model):
     class Meta:
         managed = False
         db_table = 'birds_log'
+

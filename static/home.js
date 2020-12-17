@@ -61,7 +61,7 @@ Home = {
      * @param {Event} oEvent click event of time lapse dropdown
      */
     changeTime: function(oEvent) {
-        var sTimeSelect = oEvent.srcElement.innerText;
+        var sTimeSelect = oEvent.target.innerText;
         this.iTimeMs = parseInt(sTimeSelect.replace(" ms", ""));
         document.getElementById("timeRef").innerHTML = sTimeSelect;
 
@@ -224,6 +224,24 @@ Home = {
         }
     },
 
+    clearMapView: function() {
+        this.removeLayers("minutes");
+    },
+
+    /**
+     * pause Time Lapse
+     */
+    pauseTimeLapse: function() {
+        clearInterval(this._timeLapseInterval);
+    },
+
+    /**
+     * start Time Lapse
+     */
+    startTimeLapse: function() {
+        this.setGeoJsonTimeMarkers();
+    },
+
     /**
      * set geoJson to Map and create Marker for time lapse
      */
@@ -240,7 +258,7 @@ Home = {
         }
 
         //interval based on timelapse ms
-        setInterval(function() {
+        this._timeLapseInterval = setInterval(function() {
             this.addTimeLayerToMap(this._currentMinute);
             //repeat if minutes = 59
             if (this._currentMinute === 59) {

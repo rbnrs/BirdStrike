@@ -38,8 +38,11 @@
 
 .legend {
     margin-right: 50px;
-    pointer-events: auto !important;
     width: auto;
+}
+
+.non-touchable {
+    pointer-events: none !important;
 }
 
 .box-label {
@@ -103,6 +106,22 @@
 
 .legend-text {
     color: white;
+}
+
+.raster-switch {
+    margin-right: 50px;
+    align-self: center;
+    display: contents;
+}
+
+.switch label .lever {
+    margin-left: 0px !important;
+}
+
+.raster-label {
+    color: white;
+    font-size: 15px;
+    margin-bottom: 20px;
 }
 
 .color-ft-0-1[type="checkbox"].filled-in:checked+span:not(.lever):after {

@@ -6,6 +6,8 @@
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
      <link rel="stylesheet" href="{% static 'mapbox-gl.css' %}">
      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+     <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
      <script src="https://code.jquery.com/jquery-3.5.1.js"
          integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
      <script src="{% static "home.js" %}"></script>
@@ -19,7 +21,7 @@
                  <div class="side-div z-depth-5">
                      <div id="info-risk-con" style="display: none">
                          <p class="box-label">Aktuelles Risiko:</p>
-                         <h2 class="risk-class-st1">Hoch</h2>
+                         <h2 class="risk-class-st1" style="margin-bottom: 5px;">Hoch</h2>
                          <p id="info-lat" class="info-side-div"></p>
                          <p id="info-lng" class="info-side-div"></p>
                      </div>
@@ -49,11 +51,17 @@
                      </form>
                  </div>
              </div>
-             <div class="legend">
-                 <div style="float: right">
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.startTimeLapse()">Start</button>
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.pauseTimeLapse()">Pause</button>
-                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Home.clearMapView()">Clear</button>
+             <div class="legend non-touchable">
+                 <div style="float: right; display: inline-flex; pointer-events: auto !important;">
+                     <button id="crosssecbtn" class="waves-effect waves-light btn"
+                         style="background-color: #3F9B93; margin-right: 15px; visibility: hidden"
+                         onclick="Home.openCrossSectionDialog()">Querschnitt anzeigen</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
+                         onclick="Home.startTimeLapse()">Start</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
+                         onclick="Home.pauseTimeLapse()">Pause</button>
+                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93"
+                         onclick="Home.clearMapView()">Clear</button>
 
                      <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1'
                          style="background-color: #3F9B93; width:200px; margin-left: 40px">Zeitraffer auswählen</a>
@@ -68,9 +76,17 @@
                          <li><a href="#!">10000 ms</a></li>
                      </ul>
                  </div>
-                 <div>
-                     <div>
-                         <div class="card white darken-1 height-legend" style="background-color: #343333 !important;">
+                 <div class="non-touchable">
+                     <div class="non-touchable">
+                         <div class="card white darken-1 height-legend non-touchable"
+                             style="background-color: #343333 !important; width: max-content; pointer-events: auto !important;">
+                             <div class="switch raster-switch">
+                                 <label class="raster-label">
+                                     <input type="checkbox">
+                                     <span class="lever"></span>
+                                     Rasteransicht
+                                 </label>
+                             </div>
                              <p>
                                  <label>
                                      <input type="checkbox" class="filled-in color-ft-0-1"
@@ -149,13 +165,28 @@
          </div>
      </div>
      <div id="map" class="map box"></div>
+     <div id="crosssectionmodal" class="modal">
+         <div class="modal-content">
+             <canvas id="crosssectionchart" style="height: 100%; width: 100%"></canvas>
+         </div>
+         <div class="modal-footer">
+             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
+         </div>
+     </div>
      <script>
          Home.init();
          document.addEventListener('DOMContentLoaded', function () {
-             var elems = document.querySelectorAll('.dropdown-trigger');
-             var instances = M.Dropdown.init(elems, {
+             var elemsdrop = document.querySelectorAll('.dropdown-trigger');
+             var instancesdrop = M.Dropdown.init(elemsdrop, {
 
              });
+
+             var elemsmodal = document.querySelectorAll('.modal');
+             var instancesmodal = M.Modal.init(elemsmodal, {
+
+             });
+
+             Home.setModalInstances(instancesmodal);
          });
      </script>
  </body>

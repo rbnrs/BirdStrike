@@ -15,7 +15,7 @@ Home = {
 
     iHighestBird: 0,
     iBirdStrikeCount: 0,
-
+    _aGeoRef: [],
 
     aGeoArray: {
         aGeoArray1: [],
@@ -35,7 +35,6 @@ Home = {
 
     init: function() {
         this._setMapSettings();
-        this.aBirds = [];
     },
 
     /** 
@@ -74,20 +73,23 @@ Home = {
      */
     _readMapData: async function() {
 
-        $.getJSON("../data/", function(data) {
-            this.aBirds = data;
+        //AUDRUF
+        $.getJSON("../data/birds", function(oData) {
+            this.aBirds = oData;
             for (var b in this.aBirds) {
-                var bird = this.aBirds[b].fields;
-                bird.alt = parseFloat(bird.alt);
-                bird.lat = parseFloat(bird.lat);
-                bird.lng = parseFloat(bird.lng);
-                var iMinutes = parseInt(bird.time.split(":")[1]);
-                this.setMarkerBasedOnTime(iMinutes, bird);
-                this.setMarkerBasedOnHeight(bird.alt, bird);
+                var oBird = this.aBirds[b].fields;
+                oBird.alt = parseFloat(oBird.alt);
+                oBird.lat = parseFloat(oBird.lat);
+                oBird.lng = parseFloat(oBird.lng);
+                var iMinutes = parseInt(oBird.time.split(":")[1]);
+                this.setMarkerBasedOnTime(iMinutes, oBird);
+                this.setMarkerBasedOnHeight(oBird.alt, oBird);
             }
         }.bind(this)).then(function() {
 
+            //BIRDSSTRINKE DATEN SETZEN
             this.setGeoJsonMarkers();
+            this.addTimeLayerToMap(); //Zeitraffer daten setzen
             var dCurrentDate = new Date(Date.now());
             var sLocalDate = dCurrentDate.toLocaleDateString();
             var aTimes = dCurrentDate.toLocaleTimeString().split(":", 2);
@@ -100,10 +102,29 @@ Home = {
         }.bind(this));
 
 
-        //AUTOREFRESH
-        /* setTimeout(function() {
-        
-            }.bind(this), 2000); */
+        //this.createGeoRefGeoJson();
+    },
+
+    /**
+     * load GeoRefData 
+     */
+    _loadGeoRefData: function() {
+
+        $.getJSON("../data/georef", function(oData) {
+
+            for (var iGeo in oData) {
+                var oDataGeo = oData[iGeo];
+                var oGeoRef = {
+                    "geoRefId": oDataGeo.pk,
+                    "pos1": [oDataGeo.fields.p1lat, oDataGeo.fields.p1lng],
+                    "pos2": [oDataGeo.fields.p2lat, oDataGeo.fields.p2lng],
+                    "pos3": [oDataGeo.fields.p3lat, oDataGeo.fields.p3lng],
+                    "pos4": [oDataGeo.fields.p4lat, oDataGeo.fields.p4lng],
+                }
+                this._aGeoRef.push(oGeoRef);
+            }
+        }.bind(this));
+
     },
 
     /**
@@ -114,27 +135,36 @@ Home = {
         this.map = new mapboxgl.Map({
             accessToken: accessToken,
             container: 'map',
-            style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr',
+            style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
             center: [10.447683, 51.163361],
             zoom: 6
         });
+        // this.map.addControl(new mapboxgl.NavigationControl());
 
         this.map.on('load', function() {
             console.log("load");
             this._readMapData();
+            //  this._loadGeoRefData();
+            this.createGeoRefSquares();
+            setInterval(function() {
+                this.removeLayers("kft");
+                this._readMapData();
+            }.bind(this), 1000 * 60 * 5)
         }.bind(this));
 
         this.map.on('click', function(oEvent) {
-            var oLatLng = oEvent.lngLat;
+            this.oLatLng = oEvent.lngLat;
             if (this.oCurrentMarker) {
                 this.oCurrentMarker.remove();
             }
             document.getElementById("info-card").style.visibility = "visible";
-            this.setInfoData(oLatLng);
-            this.setMapMarker(oLatLng.lat, oLatLng.lng, "#3F9B93");
+            document.getElementById("crosssecbtn").style.visibility = "visible";
+            this.setInfoData(this.oLatLng);
+            this.setMapMarker(this.oLatLng.lat, this.oLatLng.lng, "#3F9B93");
         }.bind(this));
         //s  var sMap = 'https://api.mapbox.com/styles/v1/rbrns/cki68nmns9c6819qu9z6bakwr/';
     },
+
 
     /**
      * set info data to info view based on LatLng
@@ -149,6 +179,161 @@ Home = {
         document.getElementById("info-risk-nosc").style.display = "none";
     },
 
+    //TODO TEST IT 
+    createGeoRefSquares: async function() {
+
+        var iStartLong = 0;
+        var cLongiLett = "K";
+
+        while (cLongiLett !== "L") {
+
+            var cLatiLett = "N";
+            var iStartLat = 0;
+
+            while (cLatiLett !== "Q") {
+
+                var cLongSquare = "A";
+                var iLongSquare = 2;
+
+
+                while (cLongSquare !== "R") {
+
+                    var cLatSquare = "A";
+                    var iLatSquare = 4;
+
+                    while (cLatSquare !== "R") {
+
+                        this._aGeoRef.push({
+                            "georef": cLongiLett + cLatiLett + cLongSquare + cLatSquare,
+                            "bottom": 45 + (iStartLong + iLongSquare - 1) / 1.0,
+                            "top": 45 + (iStartLong + iLongSquare) / 1.0,
+                            "left": (iStartLat + iLatSquare - 1) / 1.0,
+                            "right": (iStartLat + iLatSquare) / 1.0
+                        });
+                        iLatSquare = iLatSquare + 1;
+                        cLatSquare = this.nextChar(cLatSquare);
+                    }
+
+                    iLongSquare = iLongSquare + 1;
+                    cLongSquare = this.nextChar(cLongSquare);
+                }
+
+                iStartLat = iStartLat + 15;
+                cLatiLett = this.nextChar(cLatiLett);
+
+            }
+
+            iStartLong = iStartLong + 15;
+            cLongiLett = this.nextChar(cLongiLett);
+        }
+
+        //this.createGeoRefGeoJson();
+    },
+
+    /**
+     * create Geo Json for GeoRefSystem Lines
+     */
+    createGeoRefGeoJson: async function() {
+
+        for (var i = 0; i < this._aGeoRef.length; i++) {
+            var oGeoRef = this._aGeoRef[i];
+
+            this.map.addSource(oGeoRef.georef + "lng", {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
+                            [oGeoRef.left, oGeoRef.top],
+                            [oGeoRef.left, oGeoRef.bottom]
+                        ]
+                    }
+                }
+            });
+
+            this.map.addSource(oGeoRef.georef + "label", {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            [oGeoRef.left + (oGeoRef.right - oGeoRef.left) / 2, oGeoRef.bottom + (oGeoRef.top - oGeoRef.bottom) / 2],
+                        ]
+                    }
+                }
+            })
+
+            this.map.addLayer({
+                'id': oGeoRef.georef + "lng",
+                'type': 'line',
+                'source': oGeoRef.georef + "lng",
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#FF0000',
+                    'line-width': 1
+                }
+            });
+
+            this.map.addLayer({
+                "id": oGeoRef.georef + "label",
+                "type": "symbol",
+                "source": oGeoRef.georef + "lng",
+                "layout": {
+                    "text-field": oGeoRef.georef,
+                    "text-size": 12
+                }
+            });
+
+            this.map.addSource(oGeoRef.georef + "lat", {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
+                            [oGeoRef.right, oGeoRef.top],
+                            [oGeoRef.left, oGeoRef.top]
+                        ]
+                    }
+                }
+            });
+
+            this.map.addLayer({
+                'id': oGeoRef.georef + "lat",
+                'type': 'line',
+                'source': oGeoRef.georef + "lat",
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#FF0000',
+                    'line-width': 1
+                }
+            });
+        }
+    },
+
+
+    /**
+     * returns next char in alphabet
+     * @param {String} cChar char get next one  
+     */
+    nextChar: function(cChar) {
+
+        var cCharNext = String.fromCharCode(cChar.charCodeAt(0) + 1);
+
+        if (cCharNext !== "I" && cCharNext !== "O") {
+            return cCharNext;
+        }
+        return String.fromCharCode(cCharNext.charCodeAt(0) + 1);;
+    },
 
     /**
      * added Layer to map view based on height level
@@ -183,35 +368,36 @@ Home = {
      * added Layer to map view based on current minute in time lapse
      * @param {int} iMinute minute of time lapse
      */
-    addTimeLayerToMap: async function(iMinute) {
+    addTimeLayerToMap: async function() {
 
-        for (var i = 1; i <= 10; i++) {
-            if (this.aTimeArray[iMinute][this._aColors["color" + i]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + i]].length !== 0) {
+        for (var iMinute = 1; iMinute < 60; iMinute++) {
+            for (var iColor = 1; iColor <= 10; iColor++) {
+                if (this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
 
-                var layerId = 'minutes' + iMinute + this._aColors["color" + i];
-                this.map.addSource(layerId, {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'FeatureCollection',
-                        'features': this.aTimeArray[iMinute][this._aColors["color" + i]]
-                    }
-                });
+                    var layerId = 'minutes' + iMinute + this._aColors["color" + iColor];
+                    this.map.addSource(layerId, {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'FeatureCollection',
+                            'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
+                        }
+                    });
 
-                this.map.addLayer({
-                    'id': layerId,
-                    'type': 'circle',
-                    'layout': {
-                        'visibility': 'visible'
-                    },
-                    'source': layerId,
-                    'paint': {
-                        'circle-radius': 2,
-                        'circle-color': this._aColors["color" + i]
-                    },
-                });
+                    this.map.addLayer({
+                        'id': layerId,
+                        'type': 'circle',
+                        'layout': {
+                            'visibility': 'none'
+                        },
+                        'source': layerId,
+                        'paint': {
+                            'circle-radius': 2,
+                            'circle-color': this._aColors["color" + iColor]
+                        },
+                    });
+                }
             }
         }
-
     },
 
     /**
@@ -259,16 +445,37 @@ Home = {
 
         //interval based on timelapse ms
         this._timeLapseInterval = setInterval(function() {
-            this.addTimeLayerToMap(this._currentMinute);
+            for (var iColor = 1; iColor <= 10; iColor++) {
+                var layerId = 'minutes' + this._currentMinute + this._aColors["color" + iColor];
+                if (this.map.getLayer(layerId)) {
+                    this.map.setLayoutProperty(layerId, 'visibility', 'visible');
+                }
+
+            }
             //repeat if minutes = 59
-            if (this._currentMinute === 59) {
+            if (this._currentMinute === 20) {
                 this._currentMinute = 0;
-                this.removeLayers("minutes");
+                this.noneVisibleLayers("minutes");
             } else {
                 this._currentMinute++;
             }
 
         }.bind(this), this.iTimeMs)
+    },
+
+    /**
+     * hide Layers in Time Lapse
+     * @param {String} sId id of Layer for none visibility
+     */
+    noneVisibleLayers: function(sId) {
+        var aLayers = this.map.getStyle().layers;
+
+        for (var iLayer in aLayers) {
+            var oLayer = aLayers[iLayer];
+            if (oLayer.id.includes(sId)) {
+                this.map.setLayoutProperty(oLayer.id, 'visibility', 'none');
+            }
+        }
     },
 
     /**
@@ -353,7 +560,31 @@ Home = {
         } else if (dAlt < 35000) {
             return this._aColors.color9;
         } else if (dAlt > 35000) {
-            return this._aColors.color1;
+            return this._aColors.color10;
+        }
+    },
+
+    getHeightLevelBasedOnHeight: function(dAlt) {
+        if (dAlt < 1000) {
+            return 1;
+        } else if (dAlt < 3000) {
+            return 2;
+        } else if (dAlt < 5000) {
+            return 3;
+        } else if (dAlt < 10000) {
+            return 4;
+        } else if (dAlt < 15000) {
+            return 5;
+        } else if (dAlt < 20000) {
+            return 6;
+        } else if (dAlt < 25000) {
+            return 7;
+        } else if (dAlt < 30000) {
+            return 8;
+        } else if (dAlt < 35000) {
+            return 9;
+        } else if (dAlt > 35000) {
+            return 10;
         }
     },
 
@@ -469,5 +700,141 @@ Home = {
         //birdcount
         this.iBirdStrikeCount++;
 
+    },
+
+
+    openCrossSectionDialog: function() {
+        this.setDataToCrossSectionDialog();
+        this.aCrossSectionModal.open();
+    },
+
+    setDataToCrossSectionDialog: function() {
+
+        var oDataSet = {
+            aDataSetColor1: [],
+            aDataSetColor2: [],
+            aDataSetColor3: [],
+            aDataSetColor4: [],
+            aDataSetColor5: [],
+            aDataSetColor6: [],
+            aDataSetColor7: [],
+            aDataSetColor8: [],
+            aDataSetColor9: [],
+            aDataSetColor10: []
+        };
+
+        for (var iPos = 0; iPos < this.aBirds.length; iPos++) {
+            var oBird = this.aBirds[iPos];
+            var oOptions = {
+                units: 'kilometers'
+            }
+            var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.fields.lat, oBird.fields.lng], oOptions)
+            if (fDistance <= 50) {
+                var oData = {
+                    x: oBird.fields.lat,
+                    y: oBird.fields.alt,
+                    r: 2
+                };
+                oDataSet["aDataSetColor" + this.getHeightLevelBasedOnHeight(oData.y)].push(oData);
+            }
+        }
+
+
+        var oCrossSectionCanvas = document.getElementById('crosssectionchart');
+        var oCrossSectionChart = new Chart(oCrossSectionCanvas, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                        label: "< 1 kft",
+                        backgroundColor: this._aColors["color1"],
+                        borderColor: this._aColors["color1"],
+                        data: oDataSet["aDataSetColor" + 1]
+                    },
+                    {
+                        label: "1 - 3 kft",
+                        backgroundColor: this._aColors["color2"],
+                        borderColor: this._aColors["color2"],
+                        data: oDataSet["aDataSetColor" + 2]
+                    },
+                    {
+                        label: "3 - 5 kft",
+                        backgroundColor: this._aColors["color3"],
+                        borderColor: this._aColors["color3"],
+                        data: oDataSet["aDataSetColor" + 3]
+                    },
+                    {
+                        label: "5 - 10 kft",
+                        backgroundColor: this._aColors["color4"],
+                        borderColor: this._aColors["color4"],
+                        data: oDataSet["aDataSetColor" + 4]
+                    },
+                    {
+                        label: "10 - 15 kft",
+                        backgroundColor: this._aColors["color5"],
+                        borderColor: this._aColors["color5"],
+                        data: oDataSet["aDataSetColor" + 5]
+                    },
+                    {
+                        label: "15 - 20 kft",
+                        backgroundColor: this._aColors["color6"],
+                        borderColor: this._aColors["color6"],
+                        data: oDataSet["aDataSetColor" + 6]
+                    },
+                    {
+                        label: "20 - 25 kft",
+                        backgroundColor: this._aColors["color7"],
+                        borderColor: this._aColors["color7"],
+                        data: oDataSet["aDataSetColor" + 7]
+                    },
+                    {
+                        label: "25 - 30 kft",
+                        backgroundColor: this._aColors["color8"],
+                        borderColor: this._aColors["color8"],
+                        data: oDataSet["aDataSetColor" + 8]
+                    },
+                    {
+
+                        label: "30 - 35 kft",
+                        backgroundColor: this._aColors["color9"],
+                        borderColor: this._aColors["color9"],
+                        data: oDataSet["aDataSetColor" + 9]
+                    },
+                    {
+                        label: "> 35 kft",
+                        backgroundColor: this._aColors["color10"],
+                        borderColor: this._aColors["color10"],
+                        data: oDataSet["aDataSetColor" + 10]
+                    },
+
+
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Standort: " + this.oLatLng.lat + "," + this.oLatLng.lng
+                        }
+                    }]
+                }
+            }
+        });
+    },
+
+    /**
+     * Setter for modals
+     * @param {Array} oInstancesModals Array with Modal instance
+     */
+    setModalInstances: function(oInstancesModals) {
+        this.aCrossSectionModal = oInstancesModals[0];
     }
+
+
+
 }

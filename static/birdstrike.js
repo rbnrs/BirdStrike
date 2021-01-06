@@ -35,6 +35,7 @@ Home = {
 
     init: function() {
         this._setMapSettings();
+        this.bStarted = true;
     },
 
     /** 
@@ -45,12 +46,14 @@ Home = {
      */
     changeMapView: function(iHeight, oEvent) {
         var bChecked = oEvent.target.checked;
-
+        var oSpan = oEvent.target.parentElement.children[1]; //Checkbox label
         //hide if unselected
         if (bChecked) {
             this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'visible');
+            oSpan.style.color = this._aColors["color" + iHeight];
         } else {
             this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'none');
+            oSpan.style.color = "white";
         }
 
     },
@@ -96,8 +99,15 @@ Home = {
             var sLocalTime = aTimes[0] + ":" + aTimes[1];
 
             document.getElementById("count-birdstrike").innerHTML = this.iBirdStrikeCount;
-            document.getElementById("highest-birdstrike").innerHTML = "Höchster Vogelschlag: " + Math.round(this.iHighestBird) + " ft";
+            document.getElementById("highest-birdstrike").innerHTML = "Höchste Meldung: " + Math.round(this.iHighestBird) + " ft";
             document.getElementById("info-update").innerHTML = sLocalDate + "<br>" + sLocalTime + " Uhr";
+
+            if (this.bStarted) {
+                document.getElementById("loading-panel").style.display = "none";
+                document.getElementById("control-panel").style.display = "";
+                document.getElementById("map").style.visibility = "visible";
+                this.bStarted = false;
+            }
 
         }.bind(this));
 
@@ -146,6 +156,7 @@ Home = {
             this._readMapData();
             //  this._loadGeoRefData();
             this.createGeoRefSquares();
+
             setInterval(function() {
                 this.removeLayers("kft");
                 this._readMapData();
@@ -159,7 +170,6 @@ Home = {
             }
             document.getElementById("info-card").style.visibility = "visible";
             document.getElementById("crosssecbtn").style.visibility = "visible";
-            this.setInfoData(this.oLatLng);
             this.setMapMarker(this.oLatLng.lat, this.oLatLng.lng, "#3F9B93");
         }.bind(this));
         //s  var sMap = 'https://api.mapbox.com/styles/v1/rbrns/cki68nmns9c6819qu9z6bakwr/';
@@ -170,24 +180,27 @@ Home = {
      * set info data to info view based on LatLng
      * @param {Object} oLatLng Object with lat and lng of Location
      */
-    setInfoData: function(oLatLng) {
+    setInfoData: function(sAdress) {
 
-        document.getElementById("info-lat").innerHTML = oLatLng.lat;
-        document.getElementById("info-lng").innerHTML = oLatLng.lng;
+        document.getElementById("info-address").innerHTML = sAdress;
+        document.getElementById("info-latlng").innerHTML = this.oLatLng.lat + "<br>" + this.oLatLng.lng;
+        // document.getElementById("info-lat").innerHTML = oLatLng.lat; 
+        //document.getElementById("info-lng").innerHTML = oLatLng.lng;
         document.getElementById("info-bird-dir").style.display = "block";
         document.getElementById("info-risk-con").style.display = "block";
         document.getElementById("info-risk-nosc").style.display = "none";
     },
 
     //TODO TEST IT 
+    //global georef system --- OVERWRITE IT
     createGeoRefSquares: async function() {
 
         var iStartLong = 0;
-        var cLongiLett = "K";
+        var cLongiLett = "A";
 
-        while (cLongiLett !== "L") {
+        while (cLongiLett !== "A") {
 
-            var cLatiLett = "N";
+            var cLatiLett = "A";
             var iStartLat = 0;
 
             while (cLatiLett !== "Q") {
@@ -230,7 +243,10 @@ Home = {
         //this.createGeoRefGeoJson();
     },
 
+
+    //TODO 
     /**
+     * low performance logic ?? other way ??? tooooooo long render time
      * create Geo Json for GeoRefSystem Lines
      */
     createGeoRefGeoJson: async function() {
@@ -375,26 +391,32 @@ Home = {
                 if (this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
 
                     var layerId = 'minutes' + iMinute + this._aColors["color" + iColor];
-                    this.map.addSource(layerId, {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'FeatureCollection',
-                            'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
-                        }
-                    });
+                    if (this.map.getLayer(layerId)) {
+                        this.map.removeLayer(layerId);
+                    } else {
 
-                    this.map.addLayer({
-                        'id': layerId,
-                        'type': 'circle',
-                        'layout': {
-                            'visibility': 'none'
-                        },
-                        'source': layerId,
-                        'paint': {
-                            'circle-radius': 2,
-                            'circle-color': this._aColors["color" + iColor]
-                        },
-                    });
+                        this.map.addSource(layerId, {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'FeatureCollection',
+                                'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
+                            }
+                        });
+
+                        this.map.addLayer({
+                            'id': layerId,
+                            'type': 'circle',
+                            'layout': {
+                                'visibility': 'none'
+                            },
+                            'source': layerId,
+                            'paint': {
+                                'circle-radius': 2,
+                                'circle-color': this._aColors["color" + iColor]
+                            },
+                        });
+                    }
+
                 }
             }
         }
@@ -468,6 +490,9 @@ Home = {
      * @param {String} sId id of Layer for none visibility
      */
     noneVisibleLayers: function(sId) {
+
+        //no better performance than remove and add source/layer -- better way?? 
+        //zooom and drawing sync? 
         var aLayers = this.map.getStyle().layers;
 
         for (var iLayer in aLayers) {
@@ -502,11 +527,21 @@ Home = {
      */
     setMapMarker: async function(dLat, dLng, sColor) {
 
+        var sAccessToken = "pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg"
         this.oCurrentMarker = new mapboxgl.Marker({
                 color: sColor,
             })
             .setLngLat([dLng, dLat])
             .addTo(this.map);
+        var sQuery = "https://api.mapbox.com/geocoding/v5/mapbox.places/" + dLng + "," + dLat + ".json?access_token=" + sAccessToken;
+        $.get(sQuery, function(oData) {
+            try {
+                var sAddress = oData["features"][0]["place_name"];
+                this.setInfoData(sAddress);
+            } catch (oError) {
+                this.setInfoData("Keine Adresse verfügbar");
+            }
+        }.bind(this));
     },
 
 
@@ -703,13 +738,32 @@ Home = {
     },
 
 
+    /**
+     * open Cross-Section Dialog
+     */
     openCrossSectionDialog: function() {
+        this.iRadius = 50;
         this.setDataToCrossSectionDialog();
         this.aCrossSectionModal.open();
     },
 
-    setDataToCrossSectionDialog: function() {
 
+    /**
+     * handles change of Range in Cross-Section Dialog
+     * @param {Event} oEvent change Event of Range in Cross-Section Dialog
+     */
+    changeDialogRadius: function(oEvent) {
+
+        this.iRadius = parseInt(oEvent.target.value);
+        this.oCrossSectionChart.data = this.createCharData();
+        this.oCrossSectionChart.update();
+    },
+
+
+    /**
+     * creates Dataset for Cross-Section Chart
+     */
+    createCharData: function() {
         var oDataSet = {
             aDataSetColor1: [],
             aDataSetColor2: [],
@@ -729,7 +783,7 @@ Home = {
                 units: 'kilometers'
             }
             var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.fields.lat, oBird.fields.lng], oOptions)
-            if (fDistance <= 50) {
+            if (fDistance <= this.iRadius) {
                 var oData = {
                     x: oBird.fields.lat,
                     y: oBird.fields.alt,
@@ -740,78 +794,95 @@ Home = {
         }
 
 
+        return {
+            datasets: [{
+                    label: "< 1 kft",
+                    backgroundColor: this._aColors["color1"],
+                    borderColor: this._aColors["color1"],
+                    data: oDataSet["aDataSetColor" + 1]
+                },
+                {
+                    label: "1 - 3 kft",
+                    backgroundColor: this._aColors["color2"],
+                    borderColor: this._aColors["color2"],
+                    data: oDataSet["aDataSetColor" + 2]
+                },
+                {
+                    label: "3 - 5 kft",
+                    backgroundColor: this._aColors["color3"],
+                    borderColor: this._aColors["color3"],
+                    data: oDataSet["aDataSetColor" + 3]
+                },
+                {
+                    label: "5 - 10 kft",
+                    backgroundColor: this._aColors["color4"],
+                    borderColor: this._aColors["color4"],
+                    data: oDataSet["aDataSetColor" + 4]
+                },
+                {
+                    label: "10 - 15 kft",
+                    backgroundColor: this._aColors["color5"],
+                    borderColor: this._aColors["color5"],
+                    data: oDataSet["aDataSetColor" + 5]
+                },
+                {
+                    label: "15 - 20 kft",
+                    backgroundColor: this._aColors["color6"],
+                    borderColor: this._aColors["color6"],
+                    data: oDataSet["aDataSetColor" + 6]
+                },
+                {
+                    label: "20 - 25 kft",
+                    backgroundColor: this._aColors["color7"],
+                    borderColor: this._aColors["color7"],
+                    data: oDataSet["aDataSetColor" + 7]
+                },
+                {
+                    label: "25 - 30 kft",
+                    backgroundColor: this._aColors["color8"],
+                    borderColor: this._aColors["color8"],
+                    data: oDataSet["aDataSetColor" + 8]
+                },
+                {
+
+                    label: "30 - 35 kft",
+                    backgroundColor: this._aColors["color9"],
+                    borderColor: this._aColors["color9"],
+                    data: oDataSet["aDataSetColor" + 9]
+                },
+                {
+                    label: "> 35 kft",
+                    backgroundColor: this._aColors["color10"],
+                    borderColor: this._aColors["color10"],
+                    data: oDataSet["aDataSetColor" + 10]
+                },
+
+
+            ]
+        };
+    },
+
+    /**
+     * creates Cross-Section Chart and Dialog
+     */
+    setDataToCrossSectionDialog: function() {
+
         var oCrossSectionCanvas = document.getElementById('crosssectionchart');
-        var oCrossSectionChart = new Chart(oCrossSectionCanvas, {
+
+        this.oCrossSectionChart = new Chart(oCrossSectionCanvas, {
             type: 'bubble',
-            data: {
-                datasets: [{
-                        label: "< 1 kft",
-                        backgroundColor: this._aColors["color1"],
-                        borderColor: this._aColors["color1"],
-                        data: oDataSet["aDataSetColor" + 1]
-                    },
-                    {
-                        label: "1 - 3 kft",
-                        backgroundColor: this._aColors["color2"],
-                        borderColor: this._aColors["color2"],
-                        data: oDataSet["aDataSetColor" + 2]
-                    },
-                    {
-                        label: "3 - 5 kft",
-                        backgroundColor: this._aColors["color3"],
-                        borderColor: this._aColors["color3"],
-                        data: oDataSet["aDataSetColor" + 3]
-                    },
-                    {
-                        label: "5 - 10 kft",
-                        backgroundColor: this._aColors["color4"],
-                        borderColor: this._aColors["color4"],
-                        data: oDataSet["aDataSetColor" + 4]
-                    },
-                    {
-                        label: "10 - 15 kft",
-                        backgroundColor: this._aColors["color5"],
-                        borderColor: this._aColors["color5"],
-                        data: oDataSet["aDataSetColor" + 5]
-                    },
-                    {
-                        label: "15 - 20 kft",
-                        backgroundColor: this._aColors["color6"],
-                        borderColor: this._aColors["color6"],
-                        data: oDataSet["aDataSetColor" + 6]
-                    },
-                    {
-                        label: "20 - 25 kft",
-                        backgroundColor: this._aColors["color7"],
-                        borderColor: this._aColors["color7"],
-                        data: oDataSet["aDataSetColor" + 7]
-                    },
-                    {
-                        label: "25 - 30 kft",
-                        backgroundColor: this._aColors["color8"],
-                        borderColor: this._aColors["color8"],
-                        data: oDataSet["aDataSetColor" + 8]
-                    },
-                    {
-
-                        label: "30 - 35 kft",
-                        backgroundColor: this._aColors["color9"],
-                        borderColor: this._aColors["color9"],
-                        data: oDataSet["aDataSetColor" + 9]
-                    },
-                    {
-                        label: "> 35 kft",
-                        backgroundColor: this._aColors["color10"],
-                        borderColor: this._aColors["color10"],
-                        data: oDataSet["aDataSetColor" + 10]
-                    },
-
-
-                ]
-            },
+            showTooltips: false,
+            data: this.createCharData(),
             options: {
+                legend: {
+                    position: "top"
+                },
                 scales: {
                     yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Vogelschwarm Höhe"
+                        },
                         ticks: {
                             beginAtZero: true
                         }
@@ -825,6 +896,7 @@ Home = {
                 }
             }
         });
+
     },
 
     /**

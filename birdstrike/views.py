@@ -10,14 +10,11 @@ from birdstrike.models import BirdsLog, Georef
 from django.core import serializers
 from datetime import datetime
 
-def home(request):
+def birdstrike(request):
     context = {
         
     }
-    return render(request, "home.html", context)
-
-def default(request): 
-    return HttpResponse("Default")   
+    return render(request, "birdstrike.html", context)
 
 def _getBirdsLog(): 
     dEndDate = datetime.now()

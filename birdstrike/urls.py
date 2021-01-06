@@ -20,8 +20,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 
 urlpatterns = [
-    path('home/', views.home),
-    path('', views.default),
+    path('', views.birdstrike),
     path('data/<str:typeR>', views.jsonData)
 ]
 

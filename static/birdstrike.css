@@ -128,17 +128,27 @@
     margin-top: 150px !important;
 }
 
-@media (max-device-height: 900px) {
+@media (min-height: 900px) {
+    .height-legend {
+        display: grid;
+        padding: 30px;
+        width: 50%;
+        margin-left: auto !important;
+        margin-top: 150px !important;
+    }
+}
+
+@media (max-height: 900px) {
     .side-div {
-        height: 140px;
+        height: 140px !important;
         width: 250px;
         background-color: #1f1e1e;
-        margin-top: 20px;
+        margin-top: 20px !important;
         margin-left: 50px;
-        padding-top: 5px;
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-bottom: 5px;
+        padding-top: 5px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        padding-bottom: 5px !important;
     }
     .height-legend {
         display: grid;

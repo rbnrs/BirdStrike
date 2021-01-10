@@ -5,17 +5,20 @@
     <link rel="stylesheet" href="{% static 'birdstrike.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link rel="stylesheet" href="{% static 'mapbox-gl.css' %}">
+    <link rel="icon" href="{% static 'icon.png' %}" type="image/x-icon">
+    <title>Birdstrike</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
     <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.js"
+    <script src="{% static 'jquery-3.5.1.js' %}"
         integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
     <script src="{% static 'birdstrike.js' %}"></script>
     <script src="{% static 'mapbox-gl.js' %}"></script>
+    <meta name="viewport" content="height=device-height, initial-scale=1.0">
 </head>
 
 <body>
-    <div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: #1f1d1e">
+    <div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: #201d1e">
         <div class="loading-bar">
             <img src="{% static 'logo.jpg' %}" width="300px">
         </div>

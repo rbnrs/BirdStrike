@@ -21,7 +21,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('', views.birdstrike),
-    path('data/<str:typeR>', views.jsonData)
+    path('data/<str:typeR>/<str:startT>/<str:endT>', views.jsonData)
 ]
 
 urlpatterns += staticfiles_urlpatterns()

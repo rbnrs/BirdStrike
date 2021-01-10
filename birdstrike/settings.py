@@ -55,6 +55,14 @@ INSTALLED_APPS = [
    # 'leaflet'
 ]
 
+
+CACHES = {
+     'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'birdstrike',
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

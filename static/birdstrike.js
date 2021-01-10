@@ -34,6 +34,7 @@ Home = {
 
 
     init: function() {
+        this.iStartTime = Date.now();
         this._setMapSettings();
         this.bStarted = true;
     },
@@ -70,29 +71,80 @@ Home = {
     },
 
     /**
+     * returns Promise with ajax request of birds data
+     * set Data to local arrays
+     * @param {String} sStartTime Starttime for Request
+     * @param {String} sEndTime Endtime for Request
+     * @returns {Promise} Promise with ajax request
+     */
+    _readDataUrlWithTime: async function(sStartTime, sEndTime) {
+
+        return new Promise(function(resolve, reject) {
+            $.getJSON("../data/birds/" + sStartTime + "/" + sEndTime, function(oData) {
+                this.aBirds = oData;
+                for (var b in this.aBirds) {
+                    var oBird = this.aBirds[b];
+                    oBird = {
+                        "lat": oBird[1],
+                        "lng": oBird[2],
+                        "alt": oBird[3],
+                        "time": oBird[4]
+                    };
+                    //var oBird = this.aBirds[b].fields;
+
+                    oBird.alt = parseFloat(oBird.alt);
+                    oBird.lat = parseFloat(oBird.lat);
+                    oBird.lng = parseFloat(oBird.lng);
+                    var iMinutes = parseInt(oBird.time.split(":")[1]);
+                    this.setMarkerBasedOnTime(iMinutes, oBird);
+                    this.setMarkerBasedOnHeight(oBird.alt, oBird);
+                }
+                resolve();
+            }.bind(this)).catch(function() {
+                reject();
+            });
+        }.bind(this));
+    },
+
+
+    /**
      * gets Birdstrike Data via json. 
      * setted items to arrays based on time or height
      * shows info view, if item were loaded
      */
     _readMapData: async function() {
 
-        //AUDRUF
-        $.getJSON("../data/birds", function(oData) {
-            this.aBirds = oData;
-            for (var b in this.aBirds) {
-                var oBird = this.aBirds[b].fields;
-                oBird.alt = parseFloat(oBird.alt);
-                oBird.lat = parseFloat(oBird.lat);
-                oBird.lng = parseFloat(oBird.lng);
-                var iMinutes = parseInt(oBird.time.split(":")[1]);
-                this.setMarkerBasedOnTime(iMinutes, oBird);
-                this.setMarkerBasedOnHeight(oBird.alt, oBird);
-            }
-        }.bind(this)).then(function() {
 
-            //BIRDSSTRINKE DATEN SETZEN
+        var dStartTime = new Date(Date.now());
+        var aRequests = [];
+        var iQueries = 5;
+        for (var iQuery = 0; iQuery < iQueries; iQuery++) {
+            var dEndTime = new Date(dStartTime);
+            dEndTime = new Date(dEndTime.setMinutes(dEndTime.getMinutes() - 60 / iQueries));
+            var aStartTimes = dStartTime.toLocaleTimeString().split(":", 2);
+            var sStartTime = aStartTimes[0] + ":" + aStartTimes[1];
+            var aEndTimes = dEndTime.toLocaleTimeString().split(":", 2);
+            var sEndTime = aEndTimes[0] + ":" + aEndTimes[1];
+
+            aRequests.push({
+                "start": sStartTime,
+                "end": sEndTime
+            });
+            dStartTime = dEndTime;
+        }
+
+
+        var aPromises = [];
+
+        for (var i = 0; i < 5; i++) {
+            aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
+        }
+
+        //split requests for better performance
+        Promise.all(aPromises).then(function() {
+
             this.setGeoJsonMarkers();
-            this.addTimeLayerToMap(); //Zeitraffer daten setzen
+            this.addTimeLayerToMap();
             var dCurrentDate = new Date(Date.now());
             var sLocalDate = dCurrentDate.toLocaleDateString();
             var aTimes = dCurrentDate.toLocaleTimeString().split(":", 2);
@@ -110,31 +162,6 @@ Home = {
             }
 
         }.bind(this));
-
-
-        //this.createGeoRefGeoJson();
-    },
-
-    /**
-     * load GeoRefData 
-     */
-    _loadGeoRefData: function() {
-
-        $.getJSON("../data/georef", function(oData) {
-
-            for (var iGeo in oData) {
-                var oDataGeo = oData[iGeo];
-                var oGeoRef = {
-                    "geoRefId": oDataGeo.pk,
-                    "pos1": [oDataGeo.fields.p1lat, oDataGeo.fields.p1lng],
-                    "pos2": [oDataGeo.fields.p2lat, oDataGeo.fields.p2lng],
-                    "pos3": [oDataGeo.fields.p3lat, oDataGeo.fields.p3lng],
-                    "pos4": [oDataGeo.fields.p4lat, oDataGeo.fields.p4lng],
-                }
-                this._aGeoRef.push(oGeoRef);
-            }
-        }.bind(this));
-
     },
 
     /**
@@ -149,14 +176,14 @@ Home = {
             center: [10.447683, 51.163361],
             zoom: 6
         });
-        // this.map.addControl(new mapboxgl.NavigationControl());
 
         this.map.on('load', function() {
-            console.log("load");
             this._readMapData();
-            //  this._loadGeoRefData();
-            this.createGeoRefSquares();
 
+
+
+
+            this.createGeoRefSquares();
             setInterval(function() {
                 this.removeLayers("kft");
                 this._readMapData();
@@ -164,6 +191,8 @@ Home = {
         }.bind(this));
 
         this.map.on('click', function(oEvent) {
+
+
             this.oLatLng = oEvent.lngLat;
             if (this.oCurrentMarker) {
                 this.oCurrentMarker.remove();
@@ -184,8 +213,6 @@ Home = {
 
         document.getElementById("info-address").innerHTML = sAdress;
         document.getElementById("info-latlng").innerHTML = this.oLatLng.lat + "<br>" + this.oLatLng.lng;
-        // document.getElementById("info-lat").innerHTML = oLatLng.lat; 
-        //document.getElementById("info-lng").innerHTML = oLatLng.lng;
         document.getElementById("info-bird-dir").style.display = "block";
         document.getElementById("info-risk-con").style.display = "block";
         document.getElementById("info-risk-nosc").style.display = "none";
@@ -196,23 +223,23 @@ Home = {
     createGeoRefSquares: async function() {
 
         var iStartLong = 0;
-        var cLongiLett = "A";
+        var cLongiLett = "N";
 
-        while (cLongiLett !== "A") {
+        while (cLongiLett !== "Q") {
 
-            var cLatiLett = "A";
-            var iStartLat = 0;
+            var cLatiLett = "K";
+            var iStartLat = 45;
 
-            while (cLatiLett !== "Q") {
+            while (cLatiLett !== "L") {
 
                 var cLongSquare = "A";
-                var iLongSquare = 2;
+                var iLongSquare = 0;
 
 
                 while (cLongSquare !== "R") {
 
                     var cLatSquare = "A";
-                    var iLatSquare = 4;
+                    var iLatSquare = 0;
 
                     while (cLatSquare !== "R") {
 
@@ -240,7 +267,7 @@ Home = {
             cLongiLett = this.nextChar(cLongiLett);
         }
 
-        //this.createGeoRefGeoJson();
+        this.createGeoRefGeoJson();
     },
 
 
@@ -599,6 +626,10 @@ Home = {
         }
     },
 
+    /**
+     * get Level based on Birds Height
+     * @param {float} dAlt Höhe
+     */
     getHeightLevelBasedOnHeight: function(dAlt) {
         if (dAlt < 1000) {
             return 1;
@@ -906,7 +937,5 @@ Home = {
     setModalInstances: function(oInstancesModals) {
         this.aCrossSectionModal = oInstancesModals[0];
     }
-
-
 
 }

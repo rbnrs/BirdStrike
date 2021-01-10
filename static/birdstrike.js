@@ -180,10 +180,6 @@ Home = {
         this.map.on('load', function() {
             this._readMapData();
 
-
-
-
-            this.createGeoRefSquares();
             setInterval(function() {
                 this.removeLayers("kft");
                 this._readMapData();
@@ -191,9 +187,8 @@ Home = {
         }.bind(this));
 
         this.map.on('click', function(oEvent) {
-
-
             this.oLatLng = oEvent.lngLat;
+            //this.createGeoRefSquares();
             if (this.oCurrentMarker) {
                 this.oCurrentMarker.remove();
             }

@@ -1,4 +1,4 @@
-Home = {
+Birdstrike = {
 
     _aColors: {
         "color1": "#42FF00",
@@ -34,7 +34,6 @@ Home = {
 
 
     init: function() {
-        this.iStartTime = Date.now();
         this._setMapSettings();
         this.bStarted = true;
     },
@@ -77,33 +76,44 @@ Home = {
      * @param {String} sEndTime Endtime for Request
      * @returns {Promise} Promise with ajax request
      */
-    _readDataUrlWithTime: async function(sStartTime, sEndTime) {
+    _readDataUrlWithTime: async function(sEndTime, sStartTime) {
 
         return new Promise(function(resolve, reject) {
-            $.getJSON("../data/birds/" + sStartTime + "/" + sEndTime, function(oData) {
+            //split to get H and min of Time string
+            var aStartTime = sStartTime.split(":");
+            var aEndTime = sEndTime.split(":");
+
+            //get MS of TimeString
+            var iStartTime = (aStartTime[0] * 3600 + aStartTime[1] * 60) * 1000;
+            var iEndTime = (aEndTime[0] * 3600 + aEndTime[1] * 60) * 1000;
+
+            $.getJSON("http://localhost:4200/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
                 this.aBirds = oData;
                 for (var b in this.aBirds) {
                     var oBird = this.aBirds[b];
-                    oBird = {
-                        "lat": oBird[1],
-                        "lng": oBird[2],
-                        "alt": oBird[3],
-                        "time": oBird[4]
-                    };
-                    //var oBird = this.aBirds[b].fields;
+                    if (oBird.time !== undefined) {
+                        oBird.alt = parseFloat(oBird.alt);
+                        oBird.lat = parseFloat(oBird.lat);
+                        oBird.lng = parseFloat(oBird.lng);
+                        oBird.time = this.getTimeString(oBird.time);
+                        var iMinutes = parseInt(oBird.time.split(":")[1]);
+                        this.setMarkerBasedOnTime(iMinutes, oBird);
+                        this.setMarkerBasedOnHeight(oBird.alt, oBird);
+                    }
 
-                    oBird.alt = parseFloat(oBird.alt);
-                    oBird.lat = parseFloat(oBird.lat);
-                    oBird.lng = parseFloat(oBird.lng);
-                    var iMinutes = parseInt(oBird.time.split(":")[1]);
-                    this.setMarkerBasedOnTime(iMinutes, oBird);
-                    this.setMarkerBasedOnHeight(oBird.alt, oBird);
                 }
                 resolve();
             }.bind(this)).catch(function() {
                 reject();
             });
         }.bind(this));
+    },
+
+    getTimeString: function(iTime) {
+        var dDate = new Date(iTime);
+        var sTimeString = dDate.toLocaleTimeString();
+        var aTimeSplit = sTimeString.split(":");
+        return aTimeSplit[0] + ":" + aTimeSplit[1];
     },
 
 
@@ -114,10 +124,10 @@ Home = {
      */
     _readMapData: async function() {
 
-
+        this.resetMapData();
         var dStartTime = new Date(Date.now());
         var aRequests = [];
-        var iQueries = 5;
+        var iQueries = 50;
         for (var iQuery = 0; iQuery < iQueries; iQuery++) {
             var dEndTime = new Date(dStartTime);
             dEndTime = new Date(dEndTime.setMinutes(dEndTime.getMinutes() - 60 / iQueries));
@@ -136,9 +146,12 @@ Home = {
 
         var aPromises = [];
 
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 50; i++) {
             aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
         }
+
+
+
 
         //split requests for better performance
         Promise.all(aPromises).then(function() {
@@ -160,8 +173,31 @@ Home = {
                 document.getElementById("map").style.visibility = "visible";
                 this.bStarted = false;
             }
-
         }.bind(this));
+    },
+
+    /**
+     * reset Map Data for new Requests
+     */
+    resetMapData: function() {
+        this.aGeoArray = {
+            aGeoArray1: [],
+            aGeoArray2: [],
+            aGeoArray3: [],
+            aGeoArray4: [],
+            aGeoArray5: [],
+            aGeoArray6: [],
+            aGeoArray7: [],
+            aGeoArray8: [],
+            aGeoArray9: [],
+            aGeoArray10: [],
+        };
+
+        this.aTimeArray = {};
+
+        this.iHighestBird = 0;
+
+        this.iBirdStrikeCount = 0;
     },
 
     /**
@@ -178,17 +214,18 @@ Home = {
         });
 
         this.map.on('load', function() {
+            console.log("Start ReadMapData " + (Date.now() - this.iStartTimeLogs));
             this._readMapData();
 
             setInterval(function() {
-                this.removeLayers("kft");
+                this.removeLayers("kft1");
                 this._readMapData();
             }.bind(this), 1000 * 60 * 5)
         }.bind(this));
 
         this.map.on('click', function(oEvent) {
             this.oLatLng = oEvent.lngLat;
-            //this.createGeoRefSquares();
+            //this.createGeoRefGeoJson();
             if (this.oCurrentMarker) {
                 this.oCurrentMarker.remove();
             }
@@ -213,152 +250,6 @@ Home = {
         document.getElementById("info-risk-nosc").style.display = "none";
     },
 
-    //TODO TEST IT 
-    //global georef system --- OVERWRITE IT
-    createGeoRefSquares: async function() {
-
-        var iStartLong = 0;
-        var cLongiLett = "N";
-
-        while (cLongiLett !== "Q") {
-
-            var cLatiLett = "K";
-            var iStartLat = 45;
-
-            while (cLatiLett !== "L") {
-
-                var cLongSquare = "A";
-                var iLongSquare = 0;
-
-
-                while (cLongSquare !== "R") {
-
-                    var cLatSquare = "A";
-                    var iLatSquare = 0;
-
-                    while (cLatSquare !== "R") {
-
-                        this._aGeoRef.push({
-                            "georef": cLongiLett + cLatiLett + cLongSquare + cLatSquare,
-                            "bottom": 45 + (iStartLong + iLongSquare - 1) / 1.0,
-                            "top": 45 + (iStartLong + iLongSquare) / 1.0,
-                            "left": (iStartLat + iLatSquare - 1) / 1.0,
-                            "right": (iStartLat + iLatSquare) / 1.0
-                        });
-                        iLatSquare = iLatSquare + 1;
-                        cLatSquare = this.nextChar(cLatSquare);
-                    }
-
-                    iLongSquare = iLongSquare + 1;
-                    cLongSquare = this.nextChar(cLongSquare);
-                }
-
-                iStartLat = iStartLat + 15;
-                cLatiLett = this.nextChar(cLatiLett);
-
-            }
-
-            iStartLong = iStartLong + 15;
-            cLongiLett = this.nextChar(cLongiLett);
-        }
-
-        this.createGeoRefGeoJson();
-    },
-
-
-    //TODO 
-    /**
-     * low performance logic ?? other way ??? tooooooo long render time
-     * create Geo Json for GeoRefSystem Lines
-     */
-    createGeoRefGeoJson: async function() {
-
-        for (var i = 0; i < this._aGeoRef.length; i++) {
-            var oGeoRef = this._aGeoRef[i];
-
-            this.map.addSource(oGeoRef.georef + "lng", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': [
-                            [oGeoRef.left, oGeoRef.top],
-                            [oGeoRef.left, oGeoRef.bottom]
-                        ]
-                    }
-                }
-            });
-
-            this.map.addSource(oGeoRef.georef + "label", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            [oGeoRef.left + (oGeoRef.right - oGeoRef.left) / 2, oGeoRef.bottom + (oGeoRef.top - oGeoRef.bottom) / 2],
-                        ]
-                    }
-                }
-            })
-
-            this.map.addLayer({
-                'id': oGeoRef.georef + "lng",
-                'type': 'line',
-                'source': oGeoRef.georef + "lng",
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': '#FF0000',
-                    'line-width': 1
-                }
-            });
-
-            this.map.addLayer({
-                "id": oGeoRef.georef + "label",
-                "type": "symbol",
-                "source": oGeoRef.georef + "lng",
-                "layout": {
-                    "text-field": oGeoRef.georef,
-                    "text-size": 12
-                }
-            });
-
-            this.map.addSource(oGeoRef.georef + "lat", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': [
-                            [oGeoRef.right, oGeoRef.top],
-                            [oGeoRef.left, oGeoRef.top]
-                        ]
-                    }
-                }
-            });
-
-            this.map.addLayer({
-                'id': oGeoRef.georef + "lat",
-                'type': 'line',
-                'source': oGeoRef.georef + "lat",
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': '#FF0000',
-                    'line-width': 1
-                }
-            });
-        }
-    },
-
-
     /**
      * returns next char in alphabet
      * @param {String} cChar char get next one  
@@ -378,6 +269,15 @@ Home = {
      * @param {int} iHeight height level
      */
     addLayerToMap: async function(iHeight) {
+
+
+        if (this.map.getLayer('kft' + iHeight)) {
+            this.map.removeLayer('kft' + iHeight);
+        }
+        if (this.map.getSource('kft' + iHeight)) {
+            this.map.removeSource('kft' + iHeight);
+        }
+
 
         this.map.addSource('kft' + iHeight, {
             'type': 'geojson',
@@ -410,34 +310,36 @@ Home = {
 
         for (var iMinute = 1; iMinute < 60; iMinute++) {
             for (var iColor = 1; iColor <= 10; iColor++) {
-                if (this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
+                if (this.aTimeArray[iMinute] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
 
                     var layerId = 'minutes' + iMinute + this._aColors["color" + iColor];
                     if (this.map.getLayer(layerId)) {
                         this.map.removeLayer(layerId);
-                    } else {
-
-                        this.map.addSource(layerId, {
-                            'type': 'geojson',
-                            'data': {
-                                'type': 'FeatureCollection',
-                                'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
-                            }
-                        });
-
-                        this.map.addLayer({
-                            'id': layerId,
-                            'type': 'circle',
-                            'layout': {
-                                'visibility': 'none'
-                            },
-                            'source': layerId,
-                            'paint': {
-                                'circle-radius': 2,
-                                'circle-color': this._aColors["color" + iColor]
-                            },
-                        });
                     }
+                    if (this.map.getSource(layerId)) {
+                        this.map.removeSource(layerId);
+                    }
+                    this.map.addSource(layerId, {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'FeatureCollection',
+                            'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
+                        }
+                    });
+
+                    this.map.addLayer({
+                        'id': layerId,
+                        'type': 'circle',
+                        'layout': {
+                            'visibility': 'none'
+                        },
+                        'source': layerId,
+                        'paint': {
+                            'circle-radius': 2,
+                            'circle-color': this._aColors["color" + iColor]
+                        },
+                    });
+
 
                 }
             }
@@ -455,7 +357,8 @@ Home = {
     },
 
     clearMapView: function() {
-        this.removeLayers("minutes");
+        clearInterval(this._timeLapseInterval);
+        this.noneVisibleLayers("minutes");
     },
 
     /**
@@ -497,7 +400,7 @@ Home = {
 
             }
             //repeat if minutes = 59
-            if (this._currentMinute === 20) {
+            if (this._currentMinute === 59) {
                 this._currentMinute = 0;
                 this.noneVisibleLayers("minutes");
             } else {
@@ -808,11 +711,11 @@ Home = {
             var oOptions = {
                 units: 'kilometers'
             }
-            var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.fields.lat, oBird.fields.lng], oOptions)
+            var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.lat, oBird.lng], oOptions)
             if (fDistance <= this.iRadius) {
                 var oData = {
-                    x: oBird.fields.lat,
-                    y: oBird.fields.alt,
+                    x: oBird.lat,
+                    y: oBird.alt,
                     r: 2
                 };
                 oDataSet["aDataSetColor" + this.getHeightLevelBasedOnHeight(oData.y)].push(oData);

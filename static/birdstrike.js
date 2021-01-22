@@ -1,4 +1,4 @@
-Home = {
+Birdstrike = {
 
     _aColors: {
         "color1": "#42FF00",
@@ -94,26 +94,29 @@ Home = {
                 this.aBirds = oData;
                 for (var b in this.aBirds) {
                     var oBird = this.aBirds[b];
-                    oBird = {
-                        "lat": oBird[1],
-                        "lng": oBird[2],
-                        "alt": oBird[3],
-                        "time": oBird[4]
-                    };
-                    //var oBird = this.aBirds[b].fields;
+                    if (oBird.time !== undefined) {
+                        oBird.alt = parseFloat(oBird.alt);
+                        oBird.lat = parseFloat(oBird.lat);
+                        oBird.lng = parseFloat(oBird.lng);
+                        oBird.time = this.getTimeString(oBird.time);
+                        var iMinutes = parseInt(oBird.time.split(":")[1]);
+                        this.setMarkerBasedOnTime(iMinutes, oBird);
+                        this.setMarkerBasedOnHeight(oBird.alt, oBird);
+                    }
 
-                    oBird.alt = parseFloat(oBird.alt);
-                    oBird.lat = parseFloat(oBird.lat);
-                    oBird.lng = parseFloat(oBird.lng);
-                    var iMinutes = parseInt(oBird.time.split(":")[1]);
-                    this.setMarkerBasedOnTime(iMinutes, oBird);
-                    this.setMarkerBasedOnHeight(oBird.alt, oBird);
                 }
                 resolve();
             }.bind(this)).catch(function () {
                 reject();
             });
         }.bind(this));
+    },
+
+    getTimeString: function(iTime) {
+        var dDate = new Date(iTime);
+        var sTimeString = dDate.toLocaleTimeString();
+        var aTimeSplit = sTimeString.split(":");
+        return aTimeSplit[0] + ":" + aTimeSplit[1];
     },
 
 
@@ -124,10 +127,10 @@ Home = {
      */
     _readMapData: async function () {
 
-
+        this.resetMapData();
         var dStartTime = new Date(Date.now());
         var aRequests = [];
-        var iQueries = 5;
+        var iQueries = 50;
         for (var iQuery = 0; iQuery < iQueries; iQuery++) {
             var dEndTime = new Date(dStartTime);
             dEndTime = new Date(dEndTime.setMinutes(dEndTime.getMinutes() - 60 / iQueries));
@@ -146,9 +149,12 @@ Home = {
 
         var aPromises = [];
 
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 50; i++) {
             aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
         }
+
+
+
 
         //split requests for better performance
         Promise.all(aPromises).then(function () {
@@ -170,8 +176,31 @@ Home = {
                 document.getElementById("map").style.visibility = "visible";
                 this.bStarted = false;
             }
-
         }.bind(this));
+    },
+
+    /**
+     * reset Map Data for new Requests
+     */
+    resetMapData: function() {
+        this.aGeoArray = {
+            aGeoArray1: [],
+            aGeoArray2: [],
+            aGeoArray3: [],
+            aGeoArray4: [],
+            aGeoArray5: [],
+            aGeoArray6: [],
+            aGeoArray7: [],
+            aGeoArray8: [],
+            aGeoArray9: [],
+            aGeoArray10: [],
+        };
+
+        this.aTimeArray = {};
+
+        this.iHighestBird = 0;
+
+        this.iBirdStrikeCount = 0;
     },
 
     /**
@@ -706,6 +735,15 @@ Home = {
      */
     addLayerToMap: async function (iHeight) {
 
+
+        if (this.map.getLayer('kft' + iHeight)) {
+            this.map.removeLayer('kft' + iHeight);
+        }
+        if (this.map.getSource('kft' + iHeight)) {
+            this.map.removeSource('kft' + iHeight);
+        }
+
+
         this.map.addSource('kft' + iHeight, {
             'type': 'geojson',
             'data': {
@@ -737,34 +775,36 @@ Home = {
 
         for (var iMinute = 1; iMinute < 60; iMinute++) {
             for (var iColor = 1; iColor <= 10; iColor++) {
-                if (this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
+                if (this.aTimeArray[iMinute] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]] !== undefined && this.aTimeArray[iMinute][this._aColors["color" + iColor]].length !== 0) {
 
                     var layerId = 'minutes' + iMinute + this._aColors["color" + iColor];
                     if (this.map.getLayer(layerId)) {
                         this.map.removeLayer(layerId);
-                    } else {
-
-                        this.map.addSource(layerId, {
-                            'type': 'geojson',
-                            'data': {
-                                'type': 'FeatureCollection',
-                                'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
-                            }
-                        });
-
-                        this.map.addLayer({
-                            'id': layerId,
-                            'type': 'circle',
-                            'layout': {
-                                'visibility': 'none'
-                            },
-                            'source': layerId,
-                            'paint': {
-                                'circle-radius': 2,
-                                'circle-color': this._aColors["color" + iColor]
-                            },
-                        });
                     }
+                    if (this.map.getSource(layerId)) {
+                        this.map.removeSource(layerId);
+                    }
+                    this.map.addSource(layerId, {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'FeatureCollection',
+                            'features': this.aTimeArray[iMinute][this._aColors["color" + iColor]]
+                        }
+                    });
+
+                    this.map.addLayer({
+                        'id': layerId,
+                        'type': 'circle',
+                        'layout': {
+                            'visibility': 'none'
+                        },
+                        'source': layerId,
+                        'paint': {
+                            'circle-radius': 2,
+                            'circle-color': this._aColors["color" + iColor]
+                        },
+                    });
+
 
                 }
             }
@@ -824,7 +864,7 @@ Home = {
 
             }
             //repeat if minutes = 59
-            if (this._currentMinute === 20) {
+            if (this._currentMinute === 59) {
                 this._currentMinute = 0;
                 this.noneVisibleLayers("minutes");
             } else {
@@ -1135,11 +1175,11 @@ Home = {
             var oOptions = {
                 units: 'kilometers'
             }
-            var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.fields.lat, oBird.fields.lng], oOptions)
+            var fDistance = turf.distance([this.oLatLng.lat, this.oLatLng.lng], [oBird.lat, oBird.lng], oOptions)
             if (fDistance <= this.iRadius) {
                 var oData = {
-                    x: oBird.fields.lat,
-                    y: oBird.fields.alt,
+                    x: oBird.lat,
+                    y: oBird.alt,
                     r: 2
                 };
                 oDataSet["aDataSetColor" + this.getHeightLevelBasedOnHeight(oData.y)].push(oData);

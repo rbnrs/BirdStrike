@@ -16,6 +16,16 @@ Home = {
     iHighestBird: 0,
     iBirdStrikeCount: 0,
     _aGeoRef: [],
+    _aGeoZone: [],
+    _aGeoZoneZoom: [],
+    _aGeoLetterZoom: [],
+    bGeoRefSet: false,
+    bGeoZone: false,
+    bGeoZoneZoom: false,
+    bGeoLetterZoom: false,
+    bGeoZoneZoomVisible: false,
+    bGeoLetterZoomVisible: false,
+    sZone: "NK",
 
     aGeoArray: {
         aGeoArray1: [],
@@ -33,7 +43,7 @@ Home = {
     aTimeArray: {},
 
 
-    init: function() {
+    init: function () {
         this.iStartTime = Date.now();
         this._setMapSettings();
         this.bStarted = true;
@@ -45,7 +55,7 @@ Home = {
      * @param {int} iHeight height level of Birdstrike
      * @param {Event} oEvent clickevent of Checkbox
      */
-    changeMapView: function(iHeight, oEvent) {
+    changeMapView: function (iHeight, oEvent) {
         var bChecked = oEvent.target.checked;
         var oSpan = oEvent.target.parentElement.children[1]; //Checkbox label
         //hide if unselected
@@ -63,7 +73,7 @@ Home = {
      * Setted Time for time lapse
      * @param {Event} oEvent click event of time lapse dropdown
      */
-    changeTime: function(oEvent) {
+    changeTime: function (oEvent) {
         var sTimeSelect = oEvent.target.innerText;
         this.iTimeMs = parseInt(sTimeSelect.replace(" ms", ""));
         document.getElementById("timeRef").innerHTML = sTimeSelect;
@@ -77,10 +87,10 @@ Home = {
      * @param {String} sEndTime Endtime for Request
      * @returns {Promise} Promise with ajax request
      */
-    _readDataUrlWithTime: async function(sStartTime, sEndTime) {
+    _readDataUrlWithTime: async function (sStartTime, sEndTime) {
 
-        return new Promise(function(resolve, reject) {
-            $.getJSON("../data/birds/" + sStartTime + "/" + sEndTime, function(oData) {
+        return new Promise(function (resolve, reject) {
+            $.getJSON("../data/birds/" + sStartTime + "/" + sEndTime, function (oData) {
                 this.aBirds = oData;
                 for (var b in this.aBirds) {
                     var oBird = this.aBirds[b];
@@ -100,7 +110,7 @@ Home = {
                     this.setMarkerBasedOnHeight(oBird.alt, oBird);
                 }
                 resolve();
-            }.bind(this)).catch(function() {
+            }.bind(this)).catch(function () {
                 reject();
             });
         }.bind(this));
@@ -112,7 +122,7 @@ Home = {
      * setted items to arrays based on time or height
      * shows info view, if item were loaded
      */
-    _readMapData: async function() {
+    _readMapData: async function () {
 
 
         var dStartTime = new Date(Date.now());
@@ -141,7 +151,7 @@ Home = {
         }
 
         //split requests for better performance
-        Promise.all(aPromises).then(function() {
+        Promise.all(aPromises).then(function () {
 
             this.setGeoJsonMarkers();
             this.addTimeLayerToMap();
@@ -167,7 +177,7 @@ Home = {
     /**
      * set settings and config for mapview
      */
-    _setMapSettings: function() {
+    _setMapSettings: function () {
         let accessToken = 'pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg';
         this.map = new mapboxgl.Map({
             accessToken: accessToken,
@@ -177,18 +187,17 @@ Home = {
             zoom: 6
         });
 
-        this.map.on('load', function() {
+        this.map.on('load', function () {
             this._readMapData();
 
-            setInterval(function() {
+            setInterval(function () {
                 this.removeLayers("kft");
                 this._readMapData();
             }.bind(this), 1000 * 60 * 5)
         }.bind(this));
 
-        this.map.on('click', function(oEvent) {
+        this.map.on('click', function (oEvent) {
             this.oLatLng = oEvent.lngLat;
-            //this.createGeoRefSquares();
             if (this.oCurrentMarker) {
                 this.oCurrentMarker.remove();
             }
@@ -197,6 +206,70 @@ Home = {
             this.setMapMarker(this.oLatLng.lat, this.oLatLng.lng, "#3F9B93");
         }.bind(this));
         //s  var sMap = 'https://api.mapbox.com/styles/v1/rbrns/cki68nmns9c6819qu9z6bakwr/';
+
+        this.map.on('zoom', function () {
+            currentZoom = this.map.getZoom();
+            if (this.bGeoZoneZoom === false) {
+                if (currentZoom > 7.5) {
+
+                    this.bGeoZoneZoom = true;
+
+                    if (this.bGeoZoneZoomVisible === true) {
+                        for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
+                            oGeoZoneZoom = this._aGeoZoneZoom[i];
+                            this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'visible');
+                        }
+                    }
+
+                }
+            }
+
+            if (this.bGeoZoneZoom === true) {
+                if (currentZoom < 7.5) {
+
+                    this.bGeoZoneZoom = false;
+                    for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
+                        oGeoZoneZoom = this._aGeoZoneZoom[i];
+                        this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'none');
+                    }
+                }
+            }
+
+
+            if (this.bGeoLetterZoom === false) {
+                if (currentZoom > 5.5) {
+
+                    this.bGeoLetterZoom = true;
+
+                    if (this.bGeoLetterZoomVisible === true) {
+                        for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
+                            oGeoLetterZoom = this._aGeoLetterZoom[i];
+                            this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'visible');
+                        }
+                    }
+
+                }
+            }
+
+            if (this.bGeoLetterZoom === true) {
+                if (currentZoom < 5.5) {
+
+                    this.bGeoLetterZoom = false;
+                   
+                    for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
+                    
+                        oGeoLetterZoom = this._aGeoLetterZoom[i];
+                        console.log(oGeoLetterZoom);
+                        this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'none');
+                    }
+                }
+            }
+
+
+
+
+
+        }.bind(this));
     },
 
 
@@ -204,7 +277,7 @@ Home = {
      * set info data to info view based on LatLng
      * @param {Object} oLatLng Object with lat and lng of Location
      */
-    setInfoData: function(sAdress) {
+    setInfoData: function (sAdress) {
 
         document.getElementById("info-address").innerHTML = sAdress;
         document.getElementById("info-latlng").innerHTML = this.oLatLng.lat + "<br>" + this.oLatLng.lng;
@@ -213,56 +286,294 @@ Home = {
         document.getElementById("info-risk-nosc").style.display = "none";
     },
 
+
+    /**
+     * set grid view of geo squares
+     */
+    setGeoRefSquares: function (oEvent) {
+        var bChecked = oEvent.target.checked;
+
+
+        if (this.bGeoRefSet == false) {
+
+            this.createGeoZoneZoom(4, 46, 17, 56);
+
+            //Teil Deutschland
+            this.sZone = "NK";
+            this.createGeoRefSquares("E", 4, "B", 46, "QL");
+
+            //Teil Polen
+            this.sZone = "PK";
+            this.createGeoRefSquares("A", 15, "B", 46, "BL");
+        }
+
+        if (this.bGeoRefSet == true) {
+            if (bChecked) {
+                this.bGeoZoneZoomVisible = true;
+                this.bGeoLetterZoomVisible = true;
+                for (var i = 0; i <= this._aGeoRef.length; i++) {
+                    _oGeoRef = this._aGeoRef[i];
+                    this.map.setLayoutProperty(_oGeoRef.letter + _oGeoRef.length + _oGeoRef.heigth, 'visibility', 'visible');
+                    this.map.setLayoutProperty(_oGeoRef.letter + 'area', 'visibility', 'visible');
+                    if (i < this._aGeoZone.length) {
+                        _oGeoRefZone = this._aGeoZone[i];
+                        this.map.setLayoutProperty(_oGeoRefZone.id, 'visibility', 'visible');
+                    }
+                }
+            } else {
+                this.bGeoZoneZoomVisible = false;
+                this.bGeoLetterZoomVisible = false;
+                for (var i = 0; i <= this._aGeoRef.length; i++) {
+                    _oGeoRef = this._aGeoRef[i];
+                    this.map.setLayoutProperty(_oGeoRef.letter + _oGeoRef.length + _oGeoRef.heigth, 'visibility', 'none');
+                    this.map.setLayoutProperty(_oGeoRef.letter + 'area', 'visibility', 'none');
+                    if (i < this._aGeoZone.length) {
+                        _oGeoRefZone = this._aGeoZone[i];
+                        this.map.setLayoutProperty(_oGeoRefZone.id, 'visibility', 'none');
+                    }
+                }
+            }
+        }
+        this.bGeoRefSet = true;
+    },
+
+
+
+
     //TODO TEST IT 
     //global georef system --- OVERWRITE IT
-    createGeoRefSquares: async function() {
+    createGeoRefSquares: async function (startLetter, startLength, lastLetter, startHeight, endPoint) {
 
-        var iStartLong = 0;
-        var cLongiLett = "N";
+        aGeoRef = [];
+        geoRef = false;
+        heigth = startHeight;
 
-        while (cLongiLett !== "Q") {
+        while (geoRef == false) {
+            firstLetter = startLetter;
+            length = startLength;
+            beginn = this.getStartPosition(startLetter);
+            stopPos = this.getStartPosition(endPoint[0]) + 2;
 
-            var cLatiLett = "K";
-            var iStartLat = 45;
+            for (var i = 1; i < stopPos - beginn; i++) {
 
-            while (cLatiLett !== "L") {
+                if (i === 1) {
+                    aGeoRef.push({
+                        'length': startLength,
+                        'heigth': heigth,
+                        'letter': "y",
+                    });
 
-                var cLongSquare = "A";
-                var iLongSquare = 0;
-
-
-                while (cLongSquare !== "R") {
-
-                    var cLatSquare = "A";
-                    var iLatSquare = 0;
-
-                    while (cLatSquare !== "R") {
-
-                        this._aGeoRef.push({
-                            "georef": cLongiLett + cLatiLett + cLongSquare + cLatSquare,
-                            "bottom": 45 + (iStartLong + iLongSquare - 1) / 1.0,
-                            "top": 45 + (iStartLong + iLongSquare) / 1.0,
-                            "left": (iStartLat + iLatSquare - 1) / 1.0,
-                            "right": (iStartLat + iLatSquare) / 1.0
-                        });
-                        iLatSquare = iLatSquare + 1;
-                        cLatSquare = this.nextChar(cLatSquare);
-                    }
-
-                    iLongSquare = iLongSquare + 1;
-                    cLongSquare = this.nextChar(cLongSquare);
+                    this._aGeoRef.push({
+                        'length': startLength,
+                        'heigth': heigth,
+                        'letter': "y",
+                    });
                 }
 
-                iStartLat = iStartLat + 15;
-                cLatiLett = this.nextChar(cLatiLett);
+                aGeoRef.push({
+                    'length': length + i,
+                    'heigth': heigth,
+                    'letter': firstLetter + lastLetter,
+                });
+
+                this._aGeoRef.push({
+                    'length': length + i,
+                    'heigth': heigth,
+                    'letter': firstLetter + lastLetter,
+                });
+
+                firstLetter = this.nextChar(firstLetter);
+            }
+
+            heigth = heigth + 1;
+            lastLetter = this.nextChar(lastLetter);
+
+            lastGeoRef = aGeoRef[aGeoRef.length - 1];
+
+            if (lastGeoRef.letter === endPoint) {
+
+                aGeoRef.push({
+                    'length': startLength,
+                    'heigth': heigth,
+                    'letter': "c",
+                });
+
+                this._aGeoRef.push({
+                    'length': startLength,
+                    'heigth': heigth,
+                    'letter': "c",
+                });
+
+                for (var i = 1; i < stopPos - beginn; i++) {
+
+                    aGeoRef.push({
+                        'length': length + i,
+                        'heigth': heigth,
+                        'letter': "x",
+                    });
+
+                    this._aGeoRef.push({
+                        'length': length + i,
+                        'heigth': heigth,
+                        'letter': "x",
+                    });
+                }
+
+                geoRef = true;
 
             }
 
-            iStartLong = iStartLong + 15;
-            cLongiLett = this.nextChar(cLongiLett);
         }
 
         this.createGeoRefGeoJson();
+    },
+
+    createGeoRefZones: async function (aGeoZone) {
+        this.bGeoZone = true;
+        for (var i = 0; i < aGeoZone.length; i++) {
+            var oGeoFirstRef = aGeoZone[i];
+            var oGeoSecondRef = aGeoZone[i + 1];
+
+            id = oGeoFirstRef + oGeoSecondRef + "zLine";
+
+            this.map.addSource(id, {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
+                            [oGeoFirstRef[1], oGeoFirstRef[2]],
+                            [oGeoSecondRef[1], oGeoSecondRef[2]]
+                        ]
+                    }
+                }
+            });
+
+            this.map.addLayer({
+                'id': id,
+                'type': 'line',
+                'source': id,
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#00BFFF',
+                    'line-width': 1
+                }
+            });
+
+            this.map.setLayoutProperty(id, 'visibility', 'none');
+
+            this._aGeoZoneZoom.push({
+                'id': id,
+            });
+        }
+
+
+    },
+
+
+    createGeoZoneZoom: async function (startLength, startHeight, endLength, endHeight) {
+
+        aGeoZoneZoom = [];
+        this.bGeoZoneZoomVisible = true;
+        this.bGeoLetterZoomVisible = true;
+
+        heigth = startHeight;
+        //this.createGeoZoneZoom(4, 46, 17, 56);
+
+        for (var i = 1; i < endLength - startLength; i++) {
+            id = startLength + i + heigth;
+
+            this.map.addSource(id + 'vLine', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
+                            [startLength + i, heigth],
+                            [startLength + i, endHeight]
+                        ]
+                    }
+                }
+            });
+
+            this.map.addLayer({
+                'id': id + 'vLine',
+                'type': 'line',
+                'source': id + 'vLine',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#00BFFF',
+                    'line-width': 1
+                }
+            });
+
+            this.map.setLayoutProperty(id + 'vLine', 'visibility', 'none');
+
+
+
+            this._aGeoZoneZoom.push({
+                'id': id + 'vLine',
+            });
+        }
+
+        for (var i = 1; i < endHeight - startHeight; i++) {
+            id = startHeight + i + startLength;
+
+            this.map.addSource(id + 'hLine', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': [
+                            [startLength, startHeight + i],
+                            [endLength, startHeight + i]
+                        ]
+                    }
+                }
+            });
+
+            this.map.addLayer({
+                'id': id + 'hLine',
+                'type': 'line',
+                'source': id + 'hLine',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#00BFFF',
+                    'line-width': 1
+                }
+            });
+
+
+            this.map.setLayoutProperty(id + 'hLine', 'visibility', 'none');
+
+            this._aGeoZoneZoom.push({
+                'id': id + 'hLine',
+            });
+        }
+
+
+        this.createGeoRefZones([
+            ['EN', 4, 56],
+            ['EB', 4, 46],
+            ['QB', 17, 46],
+            ['NKRT', 17, 56],
+            ['EN', 4, 56],
+            ['AK', 15, 56],
+            ['AK', 15, 46],
+        ]);
+
     },
 
 
@@ -271,90 +582,90 @@ Home = {
      * low performance logic ?? other way ??? tooooooo long render time
      * create Geo Json for GeoRefSystem Lines
      */
-    createGeoRefGeoJson: async function() {
+    createGeoRefGeoJson: async function () {
 
-        for (var i = 0; i < this._aGeoRef.length; i++) {
-            var oGeoRef = this._aGeoRef[i];
+        for (var i = 0; i <= aGeoRef.length; i++) {
+            var oGeoRef = aGeoRef[i];
 
-            this.map.addSource(oGeoRef.georef + "lng", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': [
-                            [oGeoRef.left, oGeoRef.top],
-                            [oGeoRef.left, oGeoRef.bottom]
-                        ]
+            if (this.bGeoZone == true) {
+                // Punkte auf den GeoRef-Linien abschalten
+                // if (oGeoRef.length != 15 && oGeoRef.heigth != 46 && oGeoRef.length != 17) {
+                this.map.addSource(oGeoRef.letter + oGeoRef.length + oGeoRef.heigth, {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [
+                                oGeoRef.length, oGeoRef.heigth
+                            ]
+                        }
                     }
-                }
-            });
-
-            this.map.addSource(oGeoRef.georef + "label", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            [oGeoRef.left + (oGeoRef.right - oGeoRef.left) / 2, oGeoRef.bottom + (oGeoRef.top - oGeoRef.bottom) / 2],
-                        ]
+                })
+                //}   
+            } else {
+                this.map.addSource(oGeoRef.letter + oGeoRef.length + oGeoRef.heigth, {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [
+                                oGeoRef.length, oGeoRef.heigth
+                            ]
+                        }
                     }
-                }
-            })
+                })
+            }
+
+            if (oGeoRef.letter !== "x" && oGeoRef.letter !== "c" && oGeoRef.letter !== "y") {
+                
+                id = oGeoRef.letter + 'area';
+
+                this._aGeoLetterZoom.push({
+                    'id': id,
+                });
+
+                this.map.addSource(oGeoRef.letter + 'area', {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [
+                                oGeoRef.length - 0.5, oGeoRef.heigth + 0.5
+                            ]
+                        }
+                    }
+                })
+            }
 
             this.map.addLayer({
-                'id': oGeoRef.georef + "lng",
-                'type': 'line',
-                'source': oGeoRef.georef + "lng",
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
+                'id': oGeoRef.letter + oGeoRef.length + oGeoRef.heigth,
+                'type': 'circle',
+                'source': oGeoRef.letter + oGeoRef.length + oGeoRef.heigth,
                 'paint': {
-                    'line-color': '#FF0000',
-                    'line-width': 1
-                }
-            });
-
-            this.map.addLayer({
-                "id": oGeoRef.georef + "label",
-                "type": "symbol",
-                "source": oGeoRef.georef + "lng",
-                "layout": {
-                    "text-field": oGeoRef.georef,
-                    "text-size": 12
-                }
-            });
-
-            this.map.addSource(oGeoRef.georef + "lat", {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': [
-                            [oGeoRef.right, oGeoRef.top],
-                            [oGeoRef.left, oGeoRef.top]
-                        ]
-                    }
-                }
-            });
-
-            this.map.addLayer({
-                'id': oGeoRef.georef + "lat",
-                'type': 'line',
-                'source': oGeoRef.georef + "lat",
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
+                    'circle-radius': 3,
+                    'circle-color': '#00BFFF'
                 },
-                'paint': {
-                    'line-color': '#FF0000',
-                    'line-width': 1
-                }
             });
+
+            if (oGeoRef.letter !== "x" && oGeoRef.letter !== "c" && oGeoRef.letter !== "y") {
+                this.map.addLayer({
+                    "id": oGeoRef.letter + 'area',
+                    "type": "symbol",
+                    "source": oGeoRef.letter + 'area',
+                    "layout": {
+                        "text-field": this.sZone + oGeoRef.letter,
+                        "text-size": 13,
+                    },
+                    paint: {
+                        "text-color": "#000000"
+                    }
+                });
+
+                this.map.setLayoutProperty(id, 'visibility', 'none');
+            }
         }
     },
 
@@ -363,7 +674,7 @@ Home = {
      * returns next char in alphabet
      * @param {String} cChar char get next one  
      */
-    nextChar: function(cChar) {
+    nextChar: function (cChar) {
 
         var cCharNext = String.fromCharCode(cChar.charCodeAt(0) + 1);
 
@@ -374,10 +685,26 @@ Home = {
     },
 
     /**
+     * returns the position of the char coordinate
+     * @param {String} cChar char get next one  
+     */
+    getStartPosition: function (cChar) {
+        var coordinates = 'ABCDEFGHJKLMNPQ';
+
+        for (var i = 0; i < 15; i++) {
+            var res = coordinates.charAt(i);
+            if (res == cChar) {
+                return i + 1;
+            }
+        }
+
+    },
+
+    /**
      * added Layer to map view based on height level
      * @param {int} iHeight height level
      */
-    addLayerToMap: async function(iHeight) {
+    addLayerToMap: async function (iHeight) {
 
         this.map.addSource('kft' + iHeight, {
             'type': 'geojson',
@@ -406,7 +733,7 @@ Home = {
      * added Layer to map view based on current minute in time lapse
      * @param {int} iMinute minute of time lapse
      */
-    addTimeLayerToMap: async function() {
+    addTimeLayerToMap: async function () {
 
         for (var iMinute = 1; iMinute < 60; iMinute++) {
             for (var iColor = 1; iColor <= 10; iColor++) {
@@ -447,35 +774,35 @@ Home = {
     /**
      * set geoJson to Map and create Marker for Height Level
      */
-    setGeoJsonMarkers: async function() {
+    setGeoJsonMarkers: async function () {
         // 10 = count of height level
         for (var i = 1; i <= 10; i++) {
             this.addLayerToMap(i);
         }
     },
 
-    clearMapView: function() {
+    clearMapView: function () {
         this.removeLayers("minutes");
     },
 
     /**
      * pause Time Lapse
      */
-    pauseTimeLapse: function() {
+    pauseTimeLapse: function () {
         clearInterval(this._timeLapseInterval);
     },
 
     /**
      * start Time Lapse
      */
-    startTimeLapse: function() {
+    startTimeLapse: function () {
         this.setGeoJsonTimeMarkers();
     },
 
     /**
      * set geoJson to Map and create Marker for time lapse
      */
-    setGeoJsonTimeMarkers: async function() {
+    setGeoJsonTimeMarkers: async function () {
 
         //return if no ms is selected
         if (!this.iTimeMs) {
@@ -488,7 +815,7 @@ Home = {
         }
 
         //interval based on timelapse ms
-        this._timeLapseInterval = setInterval(function() {
+        this._timeLapseInterval = setInterval(function () {
             for (var iColor = 1; iColor <= 10; iColor++) {
                 var layerId = 'minutes' + this._currentMinute + this._aColors["color" + iColor];
                 if (this.map.getLayer(layerId)) {
@@ -511,7 +838,7 @@ Home = {
      * hide Layers in Time Lapse
      * @param {String} sId id of Layer for none visibility
      */
-    noneVisibleLayers: function(sId) {
+    noneVisibleLayers: function (sId) {
 
         //no better performance than remove and add source/layer -- better way?? 
         //zooom and drawing sync? 
@@ -529,7 +856,7 @@ Home = {
      * remove Layers of Map
      * @param {String} sId substring of id for remove
      */
-    removeLayers: function(sId) {
+    removeLayers: function (sId) {
         var aLayers = this.map.getStyle().layers;
 
         for (var iLayer in aLayers) {
@@ -547,7 +874,7 @@ Home = {
      * @param {float} dLng longitude
      * @param {sColor} sColor color 
      */
-    setMapMarker: async function(dLat, dLng, sColor) {
+    setMapMarker: async function (dLat, dLng, sColor) {
 
         var sAccessToken = "pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg"
         this.oCurrentMarker = new mapboxgl.Marker({
@@ -556,7 +883,7 @@ Home = {
             .setLngLat([dLng, dLat])
             .addTo(this.map);
         var sQuery = "https://api.mapbox.com/geocoding/v5/mapbox.places/" + dLng + "," + dLat + ".json?access_token=" + sAccessToken;
-        $.get(sQuery, function(oData) {
+        $.get(sQuery, function (oData) {
             try {
                 var sAddress = oData["features"][0]["place_name"];
                 this.setInfoData(sAddress);
@@ -571,7 +898,7 @@ Home = {
      * @param {int} iMinutes minute of items time
      * @param {Object} oBird Birdstrike Object
      */
-    setMarkerBasedOnTime: function(iMinutes, oBird) {
+    setMarkerBasedOnTime: function (iMinutes, oBird) {
 
         if (this.aTimeArray[iMinutes] === undefined) {
             this.aTimeArray[iMinutes] = [];
@@ -596,7 +923,7 @@ Home = {
      * get Color based on height level
      * @returns {String} color based on Height
      */
-    getColorBasedOnHeight: function(dAlt) {
+    getColorBasedOnHeight: function (dAlt) {
 
         if (dAlt < 1000) {
             return this._aColors.color1;
@@ -625,7 +952,7 @@ Home = {
      * get Level based on Birds Height
      * @param {float} dAlt Höhe
      */
-    getHeightLevelBasedOnHeight: function(dAlt) {
+    getHeightLevelBasedOnHeight: function (dAlt) {
         if (dAlt < 1000) {
             return 1;
         } else if (dAlt < 3000) {
@@ -656,7 +983,7 @@ Home = {
      * @param {float} dAlt height of bird
      * @param {Object} oBird Item of Birdstrike collection
      */
-    setMarkerBasedOnHeight: function(dAlt, oBird) {
+    setMarkerBasedOnHeight: function (dAlt, oBird) {
 
         if (dAlt < 1000) {
             this.aGeoArray.aGeoArray1.push({
@@ -767,7 +1094,7 @@ Home = {
     /**
      * open Cross-Section Dialog
      */
-    openCrossSectionDialog: function() {
+    openCrossSectionDialog: function () {
         this.iRadius = 50;
         this.setDataToCrossSectionDialog();
         this.aCrossSectionModal.open();
@@ -778,7 +1105,7 @@ Home = {
      * handles change of Range in Cross-Section Dialog
      * @param {Event} oEvent change Event of Range in Cross-Section Dialog
      */
-    changeDialogRadius: function(oEvent) {
+    changeDialogRadius: function (oEvent) {
 
         this.iRadius = parseInt(oEvent.target.value);
         this.oCrossSectionChart.data = this.createCharData();
@@ -789,7 +1116,7 @@ Home = {
     /**
      * creates Dataset for Cross-Section Chart
      */
-    createCharData: function() {
+    createCharData: function () {
         var oDataSet = {
             aDataSetColor1: [],
             aDataSetColor2: [],
@@ -891,7 +1218,7 @@ Home = {
     /**
      * creates Cross-Section Chart and Dialog
      */
-    setDataToCrossSectionDialog: function() {
+    setDataToCrossSectionDialog: function () {
 
         var oCrossSectionCanvas = document.getElementById('crosssectionchart');
 
@@ -929,7 +1256,7 @@ Home = {
      * Setter for modals
      * @param {Array} oInstancesModals Array with Modal instance
      */
-    setModalInstances: function(oInstancesModals) {
+    setModalInstances: function (oInstancesModals) {
         this.aCrossSectionModal = oInstancesModals[0];
     }
 

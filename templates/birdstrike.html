@@ -63,7 +63,7 @@
                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
                         onclick="Birdstrike.pauseTimeLapse()">Pause</button>
                     <button class="waves-effect waves-light btn" style="background-color: #3F9B93"
-                        onclick="Birdstrike.clearMapView()">Clear</button>
+                        onclick="Birdstrike.clearMapView()">Zurücksetzen</button>
 
                     <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1'
                         style="background-color: #3F9B93; width:200px; margin-left: 40px">Zeitraffer auswählen</a>
@@ -84,7 +84,7 @@
                             style="background-color: #1f1e1e !important; width: max-content; pointer-events: auto !important;">
                             <div class="switch raster-switch">
                                 <label class="raster-label">
-                                    <input type="checkbox" onchange="Home.setGeoRefSquares(event)">
+                                    <input type="checkbox" onchange="Birdstrike.setGeoRefSquares(event)">
                                     <span class="lever"></span>
                                     Rasteransicht
                                 </label>

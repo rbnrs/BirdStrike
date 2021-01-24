@@ -107,14 +107,7 @@ SECURE_SSL_REDIRECT = False
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'NAME': 'birdstrike',
-        'ENGINE': 'django.db.backends.mysql',
-        'USER': 'root',
-        'PASSWORD': 'Start123!',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-    }
+
 }
 
 

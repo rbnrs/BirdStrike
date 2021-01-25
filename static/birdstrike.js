@@ -58,6 +58,10 @@ Birdstrike = {
     changeMapView: function(iHeight, oEvent) {
 
         var bChecked = oEvent.target.checked;
+
+        if (this._timeLapseInterval !== null) {
+            this.clearMapView();
+        }
         var oSpan = oEvent.target.parentElement.children[1]; //Checkbox label
         //hide if unselected
         if (bChecked) {
@@ -99,7 +103,7 @@ Birdstrike = {
             var iStartTime = (aStartTime[0] * 3600 + aStartTime[1] * 60) * 1000;
             var iEndTime = (aEndTime[0] * 3600 + aEndTime[1] * 60) * 1000;
 
-            $.getJSON("http://www.rbrns.de:4200/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
+            $.getJSON("https://www.rbrns.de/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
                 this.aBirds = oData;
                 for (var b in this.aBirds) {
                     var oBird = this.aBirds[b];
@@ -139,7 +143,7 @@ Birdstrike = {
         this.resetMapData();
         var dStartTime = new Date(Date.now());
         var aRequests = [];
-        var iQueries = 50;
+        var iQueries = 60;
         for (var iQuery = 0; iQuery < iQueries; iQuery++) {
             var dEndTime = new Date(dStartTime);
             dEndTime = new Date(dEndTime.setMinutes(dEndTime.getMinutes() - 60 / iQueries));
@@ -158,7 +162,7 @@ Birdstrike = {
 
         var aPromises = [];
 
-        for (var i = 0; i < 50; i++) {
+        for (var i = 0; i < 60; i++) {
             aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
         }
 
@@ -184,7 +188,9 @@ Birdstrike = {
                 document.getElementById("map").style.visibility = "visible";
                 this.bStarted = false;
             }
-        }.bind(this));
+        }.bind(this)).catch(function(e) {
+            console.log("REST Server error. Lost connection")
+        });
     },
 
     /**
@@ -221,6 +227,7 @@ Birdstrike = {
             container: 'map',
             style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
             center: [10.447683, 51.163361],
+            minZoom: 5,
             zoom: 6
         });
 
@@ -239,51 +246,78 @@ Birdstrike = {
             }.bind(this));
 
             this.map.on('zoom', function() {
-                currentZoom = this.map.getZoom();
-                if (this.bGeoZoneZoom === false) {
-                    if (currentZoom > 7.5) {
+
+                fCurrentZoom = this.map.getZoom();
+                //Zoom In
+                if (fCurrentZoom > 7.5) {
+                    this.changePointRadiusOnLayers("minutes", 3);
+                    this.changePointRadiusOnLayers("kft", 3);
+
+                    if (!this.bGeoZoneZoom) {
+
                         this.bGeoZoneZoom = true;
-                        if (this.bGeoZoneZoomVisible === true) {
+                        if (this.bGeoZoneZoomVisible) {
                             for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
                                 oGeoZoneZoom = this._aGeoZoneZoom[i];
-                                this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'visible');
+                                if (oGeoZoneZoom) {
+                                    this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'visible');
+                                }
+
                             }
                         }
 
                     }
-                }
 
-                if (this.bGeoZoneZoom === true) {
-                    if (currentZoom < 7.5) {
+                } else {
+                    if (this.bGeoZoneZoom) {
                         this.bGeoZoneZoom = false;
                         for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
                             oGeoZoneZoom = this._aGeoZoneZoom[i];
-                            this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'none');
+                            if (oGeoZoneZoom) {
+                                this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'none');
+                            }
+
                         }
                     }
+
                 }
 
-                if (this.bGeoLetterZoom === false) {
-                    if (currentZoom > 5.5) {
+                if (fCurrentZoom > 5.5 && fCurrentZoom < 7.5) {
+
+                    this.changePointRadiusOnLayers("minutes", 2);
+                    this.changePointRadiusOnLayers("kft", 2);
+
+                    if (!this.bGeoLetterZoom) {
                         this.bGeoLetterZoom = true;
                         if (this.bGeoLetterZoomVisible === true) {
                             for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
                                 oGeoLetterZoom = this._aGeoLetterZoom[i];
-                                this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'visible');
+                                if (oGeoLetterZoom) {
+                                    this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'visible');
+                                }
+
                             }
                         }
                     }
                 }
+                if (fCurrentZoom < 5.5) {
+                    this.changePointRadiusOnLayers("minutes", 1);
+                    this.changePointRadiusOnLayers("kft", 1);
 
-                if (this.bGeoLetterZoom === true) {
-                    if (currentZoom < 5.5) {
+
+                    if (this.bGeoLetterZoom) {
+
                         this.bGeoLetterZoom = false;
                         for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
                             oGeoLetterZoom = this._aGeoLetterZoom[i];
-                            this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'none');
+                            if (oGeoLetterZoom) {
+                                this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'none');
+                            }
                         }
+
                     }
                 }
+
             }.bind(this));
 
             setInterval(function() {
@@ -356,7 +390,7 @@ Birdstrike = {
             },
             'source': 'kft' + iHeight,
             'paint': {
-                'circle-radius': 1,
+                'circle-radius': 2,
                 'circle-color': this._aColors["color" + iHeight]
             },
         });
@@ -446,6 +480,20 @@ Birdstrike = {
             return;
         }
 
+        for (var i = 1; i <= 10; i++) {
+            document.getElementById("cbheight" + i).checked = false;
+            var oEvent = {
+                "target": {
+                    "checked": false,
+                    "parentElement": {
+                        "children": [null, document.getElementById("spanheight" + i)]
+                    }
+                },
+
+            };
+            this.changeMapView(i, oEvent);
+        }
+
         if (!this._currentMinute) {
             this._currentMinute = 0;
         }
@@ -476,14 +524,27 @@ Birdstrike = {
      */
     noneVisibleLayers: function(sId) {
 
-        //no better performance than remove and add source/layer -- better way?? 
-        //zooom and drawing sync? 
         var aLayers = this.map.getStyle().layers;
 
         for (var iLayer in aLayers) {
             var oLayer = aLayers[iLayer];
             if (oLayer.id.includes(sId)) {
                 this.map.setLayoutProperty(oLayer.id, 'visibility', 'none');
+            }
+        }
+    },
+
+
+    /**
+     * changes 
+     * @param {*} sId 
+     */
+    changePointRadiusOnLayers: function(sId, iRadius) {
+        var aLayers = this.map.getStyle().layers;
+        for (var iLayer in aLayers) {
+            var oLayer = aLayers[iLayer];
+            if (oLayer.id.includes(sId)) {
+                this.map.setPaintProperty(oLayer.id, 'circle-radius', iRadius);
             }
         }
     },
@@ -915,7 +976,7 @@ Birdstrike = {
                     'line-cap': 'round'
                 },
                 'paint': {
-                    'line-color': '#00BFFF',
+                    'line-color': '#3F9B93',
                     'line-width': 1
                 }
             });
@@ -973,7 +1034,7 @@ Birdstrike = {
                     'line-cap': 'round'
                 },
                 'paint': {
-                    'line-color': '#00BFFF',
+                    'line-color': '#3F9B93',
                     'line-width': 1
                 }
             });
@@ -1013,7 +1074,7 @@ Birdstrike = {
                     'line-cap': 'round'
                 },
                 'paint': {
-                    'line-color': '#00BFFF',
+                    'line-color': '#3F9B93',
                     'line-width': 1
                 }
             });
@@ -1052,6 +1113,7 @@ Birdstrike = {
             if (this.bGeoZone) {
                 // Punkte auf den GeoRef-Linien abschalten
                 // if (oGeoRef.length != 15 && oGeoRef.heigth != 46 && oGeoRef.length != 17) {
+                // TODO keveb oGeoRef.letter + oGeoRef.length + oGeoRef.heigth + "georef" // Line 512
                 this.map.addSource(oGeoRef.letter + oGeoRef.length + oGeoRef.heigth, {
                     'type': 'geojson',
                     'data': {
@@ -1107,7 +1169,7 @@ Birdstrike = {
                 'source': oGeoRef.letter + oGeoRef.length + oGeoRef.heigth,
                 'paint': {
                     'circle-radius': 3,
-                    'circle-color': '#00BFFF'
+                    'circle-color': '#3F9B93'
                 },
             });
 
@@ -1121,7 +1183,7 @@ Birdstrike = {
                         "text-size": 13,
                     },
                     paint: {
-                        "text-color": "#000000"
+                        "text-color": "#3F9B93"
                     }
                 });
 

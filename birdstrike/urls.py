@@ -20,7 +20,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 
 urlpatterns = [
-    path('', views.birdstrike),
+    path('', views.birdstrikeView),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

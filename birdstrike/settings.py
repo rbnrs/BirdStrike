@@ -40,11 +40,14 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ( os.path.join('static'), )
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS=['*']
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'birdstrike.apps.BirdstrikesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,6 +59,8 @@ INSTALLED_APPS = [
 ]
 
 
+
+
 CACHES = {
      'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
@@ -64,6 +69,7 @@ CACHES = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

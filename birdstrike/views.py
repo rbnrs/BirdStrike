@@ -10,9 +10,10 @@ from django.core import serializers
 from datetime import datetime
 from django.template import loader
 from django.middleware.gzip import GZipMiddleware
+from birdstrike import settings
 
 
-def birdstrike(request):
+def birdstrikeView(request):
     template = loader.get_template('birdstrike.html')
     context = {
         

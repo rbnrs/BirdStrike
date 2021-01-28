@@ -30,17 +30,6 @@ Birdstrike = {
         aGeoArray10: [],
     },
 
-    _aGeoZone: [],
-    _aGeoZoneZoom: [],
-    _aGeoLetterZoom: [],
-    bGeoRefSet: false,
-    bGeoZone: false,
-    bGeoZoneZoom: false,
-    bGeoLetterZoom: false,
-    bGeoZoneZoomVisible: false,
-    bGeoLetterZoomVisible: false,
-    sZone: "NK",
-
     aTimeArray: {},
 
 
@@ -65,11 +54,16 @@ Birdstrike = {
         var oSpan = oEvent.target.parentElement.children[1]; //Checkbox label
         //hide if unselected
         if (bChecked) {
-            this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'visible');
-            oSpan.style.color = this._aColors["color" + iHeight];
+            if (this.map.getLayer("kft" + iHeight)) {
+                this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'visible');
+                oSpan.style.color = this._aColors["color" + iHeight];
+            }
+
         } else {
-            this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'none');
-            oSpan.style.color = "white";
+            if (this.map.getLayer("kft" + iHeight)) {
+                this.map.setLayoutProperty("kft" + iHeight, 'visibility', 'none');
+                oSpan.style.color = "white";
+            }
         }
 
     },
@@ -103,7 +97,7 @@ Birdstrike = {
             var iStartTime = (aStartTime[0] * 3600 + aStartTime[1] * 60) * 1000;
             var iEndTime = (aEndTime[0] * 3600 + aEndTime[1] * 60) * 1000;
 
-            $.getJSON("https://www.rbrns.de/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
+            $.getJSON("http://localhost:4200/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
                 this.aBirds = oData;
                 for (var b in this.aBirds) {
                     var oBird = this.aBirds[b];
@@ -125,6 +119,12 @@ Birdstrike = {
         }.bind(this));
     },
 
+
+    /**
+     * creates Time String
+     * @param {*} iTime time in milliseconds
+     * @returns {String} Time String
+     */
     getTimeString: function(iTime) {
         var dDate = new Date(iTime);
         var sTimeString = dDate.toLocaleTimeString();
@@ -166,11 +166,10 @@ Birdstrike = {
             aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
         }
 
-
-
-
         //split requests for better performance
-        Promise.all(aPromises).then(function() {
+        Promise.all(
+            aPromises
+        ).then(function() {
 
             this.setGeoJsonMarkers();
             this.addTimeLayerToMap();
@@ -189,8 +188,13 @@ Birdstrike = {
                 this.bStarted = false;
             }
         }.bind(this)).catch(function(e) {
-            console.log("REST Server error. Lost connection")
-        });
+            console.log("REST Server error. Lost connection");
+            document.getElementById("loading-panel").style.display = "none";
+            document.getElementById("control-panel").style.display = "none";
+            document.getElementById("smww-panel").style.display = "";
+            document.getElementById("map").style.visibility = "none";
+            this.oRefreshInterval = null;
+        }.bind(this));
     },
 
     /**
@@ -211,9 +215,7 @@ Birdstrike = {
         };
 
         this.aTimeArray = {};
-
         this.iHighestBird = 0;
-
         this.iBirdStrikeCount = 0;
     },
 
@@ -221,6 +223,9 @@ Birdstrike = {
      * set settings and config for mapview
      */
     _setMapSettings: function() {
+        //Set GeoRef
+        this.createGeoRefSquares("NK", "E", 4, "B", 46, "QL");
+        this.createGeoRefSquares("PK", "A", 15, "B", 46, "BL");
         let accessToken = 'pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg';
         this.map = new mapboxgl.Map({
             accessToken: accessToken,
@@ -233,10 +238,11 @@ Birdstrike = {
 
         this.map.on('load', function() {
             this._readMapData();
+            this.createGeoRefGeoJson();
+            this.createGeoZoneInner(4, 46, 17, 56);
 
             this.map.on('click', function(oEvent) {
                 this.oLatLng = oEvent.lngLat;
-                //this.createGeoRefGeoJson();
                 if (this.oCurrentMarker) {
                     this.oCurrentMarker.remove();
                 }
@@ -253,81 +259,24 @@ Birdstrike = {
                     this.changePointRadiusOnLayers("minutes", 3);
                     this.changePointRadiusOnLayers("kft", 3);
 
-                    if (!this.bGeoZoneZoom) {
-
-                        this.bGeoZoneZoom = true;
-                        if (this.bGeoZoneZoomVisible) {
-                            for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
-                                oGeoZoneZoom = this._aGeoZoneZoom[i];
-                                if (oGeoZoneZoom) {
-                                    this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'visible');
-                                }
-
-                            }
-                        }
-
-                    }
-
-                } else {
-                    if (this.bGeoZoneZoom) {
-                        this.bGeoZoneZoom = false;
-                        for (var i = 0; i <= this._aGeoZoneZoom.length; i++) {
-                            oGeoZoneZoom = this._aGeoZoneZoom[i];
-                            if (oGeoZoneZoom) {
-                                this.map.setLayoutProperty(oGeoZoneZoom.id, 'visibility', 'none');
-                            }
-
-                        }
-                    }
-
-                }
-
-                if (fCurrentZoom > 5.5 && fCurrentZoom < 7.5) {
+                } else if (fCurrentZoom > 5.5 && fCurrentZoom < 7.5) {
 
                     this.changePointRadiusOnLayers("minutes", 2);
                     this.changePointRadiusOnLayers("kft", 2);
 
-                    if (!this.bGeoLetterZoom) {
-                        this.bGeoLetterZoom = true;
-                        if (this.bGeoLetterZoomVisible === true) {
-                            for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
-                                oGeoLetterZoom = this._aGeoLetterZoom[i];
-                                if (oGeoLetterZoom) {
-                                    this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'visible');
-                                }
-
-                            }
-                        }
-                    }
-                }
-                if (fCurrentZoom < 5.5) {
+                } else if (fCurrentZoom < 5.5) {
                     this.changePointRadiusOnLayers("minutes", 1);
                     this.changePointRadiusOnLayers("kft", 1);
-
-
-                    if (this.bGeoLetterZoom) {
-
-                        this.bGeoLetterZoom = false;
-                        for (var i = 0; i <= this._aGeoLetterZoom.length; i++) {
-                            oGeoLetterZoom = this._aGeoLetterZoom[i];
-                            if (oGeoLetterZoom) {
-                                this.map.setLayoutProperty(oGeoLetterZoom.id, 'visibility', 'none');
-                            }
-                        }
-
-                    }
                 }
 
             }.bind(this));
 
-            setInterval(function() {
-                this.removeLayers("kft1");
+            this.oRefreshInterval = setInterval(async function() {
+                this.removeLayers("kft");
+                this.removeLayers("minutes");
                 this._readMapData();
             }.bind(this), 1000 * 60 * 5)
         }.bind(this));
-
-
-        //s  var sMap = 'https://api.mapbox.com/styles/v1/rbrns/cki68nmns9c6819qu9z6bakwr/';
     },
 
 
@@ -372,7 +321,6 @@ Birdstrike = {
             this.map.removeSource('kft' + iHeight);
         }
 
-
         this.map.addSource('kft' + iHeight, {
             'type': 'geojson',
             'data': {
@@ -394,6 +342,24 @@ Birdstrike = {
                 'circle-color': this._aColors["color" + iHeight]
             },
         });
+
+        //popup for  birdstrike alert
+        this.mappopup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        });
+
+        this.map.on('mouseenter', 'kft' + iHeight, function(oLayer) {
+            this.map.getCanvas().style.cursor = 'pointer';
+            var coordinates = oLayer.features[0].geometry.coordinates.slice();
+            var description = oLayer.features[0].properties.description;
+            this.mappopup.setLngLat(coordinates).setHTML(description).addTo(this.map);
+        }.bind(this));
+
+        this.map.on('mouseleave', 'kft' + iHeight, function() {
+            this.map.getCanvas().style.cursor = '';
+            this.mappopup.remove();
+        }.bind(this));
     },
 
     /**
@@ -499,7 +465,7 @@ Birdstrike = {
         }
 
         //interval based on timelapse ms
-        this._timeLapseInterval = setInterval(function() {
+        this._timeLapseInterval = setInterval(async function() {
             for (var iColor = 1; iColor <= 10; iColor++) {
                 var layerId = 'minutes' + this._currentMinute + this._aColors["color" + iColor];
                 if (this.map.getLayer(layerId)) {
@@ -525,19 +491,45 @@ Birdstrike = {
     noneVisibleLayers: function(sId) {
 
         var aLayers = this.map.getStyle().layers;
+        var oLayerGeoRef;
 
         for (var iLayer in aLayers) {
             var oLayer = aLayers[iLayer];
             if (oLayer.id.includes(sId)) {
-                this.map.setLayoutProperty(oLayer.id, 'visibility', 'none');
+                this.map.setLayoutProperty(oLayer.id, 'visibility', 'none', { "validate": true });
+                if (sId === "georef") {
+                    oLayerGeoRef = oLayer;
+                }
             }
         }
+        return oLayerGeoRef;
     },
 
+    /**
+     * hide Layers in Time Lapse
+     * @param {String} sId id of Layer for none visibility
+     * @returns {Object} layer of map
+     */
+    visibleLayers: function(sId) {
+
+        var aLayers = this.map.getStyle().layers;
+        var oLayerGeoRef;
+        for (var iLayer in aLayers) {
+            var oLayer = aLayers[iLayer];
+            if (oLayer.id.includes(sId)) {
+                this.map.setLayoutProperty(oLayer.id, 'visibility', 'visible', { "validate": true });
+                if (sId === "georef") {
+                    oLayerGeoRef = oLayer;
+                }
+            }
+        }
+
+        return oLayerGeoRef;
+    },
 
     /**
-     * changes 
-     * @param {*} sId 
+     * changes Radius of Birdstrike point
+     * @param {*} sId substring of layer id
      */
     changePointRadiusOnLayers: function(sId, iRadius) {
         var aLayers = this.map.getStyle().layers;
@@ -579,6 +571,7 @@ Birdstrike = {
             })
             .setLngLat([dLng, dLat])
             .addTo(this.map);
+        //update address to info view    
         var sQuery = "https://api.mapbox.com/geocoding/v5/mapbox.places/" + dLng + "," + dLat + ".json?access_token=" + sAccessToken;
         $.get(sQuery, function(oData) {
             try {
@@ -592,6 +585,7 @@ Birdstrike = {
 
 
     /**
+     * creates GeoJson for markers based on time
      * @param {int} iMinutes minute of items time
      * @param {Object} oBird Birdstrike Object
      */
@@ -601,7 +595,7 @@ Birdstrike = {
             this.aTimeArray[iMinutes] = [];
         }
 
-        var sColor = this.getColorBasedOnHeight(oBird.alt);
+        var sColor = this._aColors["color" + this.getHeightLevelBasedOnHeight(oBird.alt)];
 
         if (this.aTimeArray[iMinutes][sColor] === undefined) {
             this.aTimeArray[iMinutes][sColor] = [];
@@ -616,40 +610,9 @@ Birdstrike = {
         });
     },
 
-
-
-    /**
-     * get Color based on height level
-     * @returns {String} color based on Height
-     */
-    getColorBasedOnHeight: function(dAlt) {
-
-        if (dAlt < 1000) {
-            return this._aColors.color1;
-        } else if (dAlt < 3000) {
-            return this._aColors.color2;
-        } else if (dAlt < 5000) {
-            return this._aColors.color3;
-        } else if (dAlt < 10000) {
-            return this._aColors.color4;
-        } else if (dAlt < 15000) {
-            return this._aColors.color5;
-        } else if (dAlt < 20000) {
-            return this._aColors.color6;
-        } else if (dAlt < 25000) {
-            return this._aColors.color7;
-        } else if (dAlt < 30000) {
-            return this._aColors.color8;
-        } else if (dAlt < 35000) {
-            return this._aColors.color9;
-        } else if (dAlt > 35000) {
-            return this._aColors.color10;
-        }
-    },
-
     /**
      * get Level based on Birds Height
-     * @param {float} dAlt Höhe
+     * @param {float} dAlt Height
      */
     getHeightLevelBasedOnHeight: function(dAlt) {
         if (dAlt < 1000) {
@@ -684,10 +647,22 @@ Birdstrike = {
      */
     setMarkerBasedOnHeight: function(dAlt, oBird) {
 
+        var sGeoRef;
+        for (var i = 0; i < this._aGeoRef.length; i++) {
+            var oGeoRef = this._aGeoRef[i];
+            if (oBird.lat > oGeoRef.latStart && oBird.lat < oGeoRef.latEnd && oBird.lng > oGeoRef.lngStart && oBird.lng < oGeoRef.lngEnd) {
+                sGeoRef = "GeoRef: " + oGeoRef.zone + oGeoRef.letter + "<br>Lat: " + oBird.lat + "<br>Lng: " + oBird.lng + "<br>Höhe: " + dAlt + " ft";
+                break;
+            }
+        }
+
         if (dAlt < 1000) {
             this.aGeoArray.aGeoArray1.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -697,6 +672,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray2.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -706,6 +684,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray3.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -715,6 +696,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray4.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -724,6 +708,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray5.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -733,6 +720,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray6.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -742,6 +732,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray7.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -751,6 +744,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray8.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -760,6 +756,9 @@ Birdstrike = {
             this.aGeoArray.aGeoArray9.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
@@ -769,12 +768,14 @@ Birdstrike = {
             this.aGeoArray.aGeoArray10.push({
                 // feature for Mapbox DC
                 'type': 'Feature',
+                'properties': {
+                    'description': sGeoRef
+                },
                 'geometry': {
                     'type': 'Point',
                     'coordinates': [oBird.lng, oBird.lat]
                 },
             });
-
 
         }
 
@@ -795,63 +796,31 @@ Birdstrike = {
      */
     setGeoRefSquares: async function(oEvent) {
         var bChecked = oEvent.target.checked;
+        if (bChecked) {
+            this.oLoadingModal.open();
+            var oLayer = this.visibleLayers("georef");
+            this.map.on('render', oLayer.id, function() {
+                this.oLoadingModal.close();
+            }.bind(this));
 
-
-        if (!this.bGeoRefSet) {
-
-            this.createGeoZoneZoom(4, 46, 17, 56);
-
-            //Georef Germany
-            this.sZone = "NK";
-            // TODO keveb WHY Called evertime and not once? 
-            this.createGeoRefSquares("E", 4, "B", 46, "QL");
-
-            //Georef Poland
-            this.sZone = "PK";
-            // TODO keveb WHY Called evertime and not once? 
-            this.createGeoRefSquares("A", 15, "B", 46, "BL");
         } else {
-            if (bChecked) {
-                this.bGeoZoneZoomVisible = true;
-                this.bGeoLetterZoomVisible = true;
-                for (var i = 0; i < this._aGeoRef.length; i++) {
-                    _oGeoRef = this._aGeoRef[i];
-                    this.map.setLayoutProperty(_oGeoRef.letter + _oGeoRef.length + _oGeoRef.heigth, 'visibility', 'visible');
-                    this.map.setLayoutProperty(_oGeoRef.letter + 'area', 'visibility', 'visible');
-                    if (i < this._aGeoZone.length) {
-                        _oGeoRefZone = this._aGeoZone[i];
-                        this.map.setLayoutProperty(_oGeoRefZone.id, 'visibility', 'visible');
-                    }
-                }
-            } else {
-                this.bGeoZoneZoomVisible = false;
-                this.bGeoLetterZoomVisible = false;
-                for (var i = 0; i < this._aGeoRef.length; i++) {
-                    _oGeoRef = this._aGeoRef[i];
-                    this.map.setLayoutProperty(_oGeoRef.letter + _oGeoRef.length + _oGeoRef.heigth, 'visibility', 'none');
-                    this.map.setLayoutProperty(_oGeoRef.letter + 'area', 'visibility', 'none');
-                    if (i < this._aGeoZone.length) {
-                        _oGeoRefZone = this._aGeoZone[i];
-                        this.map.setLayoutProperty(_oGeoRefZone.id, 'visibility', 'none');
-                    }
-                }
-            }
+            var oLayer = this.noneVisibleLayers("georef");
         }
-        this.bGeoRefSet = true;
     },
 
-    //TODO keveb JSDOC
+
     /**
      * 
-     * @param {*} sStartLetter 
-     * @param {*} iStartLength 
-     * @param {*} sLastLetter 
-     * @param {*} iStartHeight 
-     * @param {*} aEndPoint 
+     * creates Array with GeoRef squares 
+     * @param {String} sZone zone of georef grid. Square with 15 x 15
+     * @param {String} sStartLetter First Letter of GeoRef grid 
+     * @param {int} iStartLength Length of GeoRef grid
+     * @param {String} sLastLetter Last Letter of GeoRef grid
+     * @param {int} iStartHeight start height of GeoRef grid
+     * @param {String} sEndPoint Last square in GeoRef Grid -> example: Draw AA - CL, then CL ist the last square
      */
-    createGeoRefSquares: async function(sStartLetter, iStartLength, sLastLetter, iStartHeight, aEndPoint) {
+    createGeoRefSquares: async function(sZone, sStartLetter, iStartLength, sLastLetter, iStartHeight, sEndPoint) {
 
-        aGeoRef = [];
         bGeoRef = false;
         iHeight = iStartHeight;
 
@@ -859,90 +828,35 @@ Birdstrike = {
             sFirstLetter = sStartLetter;
             iLength = iStartLength;
             iBegin = this.getStartPosition(sStartLetter);
-            iStopPos = this.getStartPosition(aEndPoint[0]) + 2;
-
-            for (var i = 1; i < iStopPos - iBegin; i++) {
-
-                if (i === 1) {
-                    //TODO keveb WHY DUPLICATED
-                    aGeoRef.push({
-                        'length': iStartLength,
-                        'heigth': iHeight,
-                        'letter': "y",
-                    });
-
-                    this._aGeoRef.push({
-                        'length': iStartLength,
-                        'heigth': iHeight,
-                        'letter': "y",
-                    });
-                }
-
-                //TODO keveb WHY DUPLICATED
-                aGeoRef.push({
-                    'length': iLength + i,
-                    'heigth': iHeight,
-                    'letter': sFirstLetter + sLastLetter,
-                });
-
+            iStopPos = this.getStartPosition(sEndPoint[0]) + 2;
+            for (var i = 0; i < iStopPos - iBegin - 1; i++) {
                 this._aGeoRef.push({
-                    'length': iLength + i,
-                    'heigth': iHeight,
+                    'lngStart': iLength + i,
+                    'latStart': iHeight,
+                    'lngEnd': iLength + i + 1,
+                    'latEnd': iHeight + 1,
                     'letter': sFirstLetter + sLastLetter,
+                    'zone': sZone
                 });
-
                 sFirstLetter = this.nextChar(sFirstLetter);
             }
 
             iHeight++;
             sLastLetter = this.nextChar(sLastLetter);
 
-            var lastGeoRef = aGeoRef[aGeoRef.length - 1];
+            var oLastGeoRef = this._aGeoRef[this._aGeoRef.length - 1];
 
-            if (lastGeoRef.letter === aEndPoint) {
-
-                //TODO keveb WHY DUPLICATED
-                aGeoRef.push({
-                    'length': iStartLength,
-                    'heigth': iHeight,
-                    'letter': "c",
-                });
-
-                this._aGeoRef.push({
-                    'length': iStartLength,
-                    'heigth': iHeight,
-                    'letter': "c",
-                });
-
-                for (var i = 1; i < iStopPos - iBegin; i++) {
-
-                    //TODO keveb WHY DUPLICATED
-                    aGeoRef.push({
-                        'length': iLength + i,
-                        'heigth': iHeight,
-                        'letter': "x",
-                    });
-
-                    this._aGeoRef.push({
-                        'length': iLength + i,
-                        'heigth': iHeight,
-                        'letter': "x",
-                    });
-                }
+            if (oLastGeoRef.letter === sEndPoint) {
 
                 bGeoRef = true;
-
             }
 
         }
-
-        this.createGeoRefGeoJson();
     },
 
-    //TODO keveb JSDOC
     /**
-     * 
-     * @param {*} aGeoZone 
+     * creates GeoRef Zones and draw them to map
+     * @param {Array} aGeoZone Array with GeoRef Zones 
      */
     createGeoRefZones: async function(aGeoZone) {
         this.bGeoZone = true;
@@ -951,7 +865,7 @@ Birdstrike = {
             var oGeoFirstRef = aGeoZone[i];
             var oGeoSecondRef = aGeoZone[i + 1];
 
-            sId = oGeoFirstRef + oGeoSecondRef + "zLine";
+            sId = oGeoFirstRef + oGeoSecondRef + "georef";
 
             this.map.addSource(sId, {
                 'type': 'geojson',
@@ -972,6 +886,7 @@ Birdstrike = {
                 'type': 'line',
                 'source': sId,
                 'layout': {
+                    'visibility': 'none',
                     'line-join': 'round',
                     'line-cap': 'round'
                 },
@@ -980,38 +895,27 @@ Birdstrike = {
                     'line-width': 1
                 }
             });
-
-            this.map.setLayoutProperty(sId, 'visibility', 'none');
-
-            this._aGeoZoneZoom.push({
-                'id': sId,
-            });
         }
 
 
     },
 
-    //TODO keveb JSDOC
     /**
-     * 
-     * @param {*} iStartLength 
-     * @param {*} iStartHeight 
-     * @param {*} iEndLength 
-     * @param {*} iEndHeight 
+     * draws georef square lines within georef grid (1 degress lines)
+     * @param {int} iStartLength Startpoint for line latitude
+     * @param {int} iStartHeight Startpoint for line longitude
+     * @param {int} iEndLength Endpoint for line latitude
+     * @param {int} iEndHeight Endpoint for line longitude
      */
-    createGeoZoneZoom: async function(iStartLength, iStartHeight, iEndLength, iEndHeight) {
+    createGeoZoneInner: async function(iStartLength, iStartHeight, iEndLength, iEndHeight) {
 
-        aGeoZoneZoom = [];
-        this.bGeoZoneZoomVisible = true;
-        this.bGeoLetterZoomVisible = true;
         var sId,
             iHeigth = iStartHeight;
-        //this.createGeoZoneZoom(4, 46, 17, 56);
 
         for (var i = 1; i < iEndLength - iStartLength; i++) {
             sId = iStartLength + i + iHeigth;
 
-            this.map.addSource(sId + 'vLine', {
+            this.map.addSource(sId + 'vLinegeoref', {
                 'type': 'geojson',
                 'data': {
                     'type': 'Feature',
@@ -1026,10 +930,11 @@ Birdstrike = {
             });
 
             this.map.addLayer({
-                'id': sId + 'vLine',
+                'id': sId + 'vLinegeoref',
                 'type': 'line',
-                'source': sId + 'vLine',
+                'source': sId + 'vLinegeoref',
                 'layout': {
+                    'visibility': 'none',
                     'line-join': 'round',
                     'line-cap': 'round'
                 },
@@ -1038,20 +943,12 @@ Birdstrike = {
                     'line-width': 1
                 }
             });
-
-            this.map.setLayoutProperty(sId + 'vLine', 'visibility', 'none');
-
-
-            //TODO keveb WHY PUSHED? 
-            this._aGeoZoneZoom.push({
-                'id': sId + 'vLine',
-            });
         }
 
         for (var i = 1; i < iEndHeight - iStartHeight; i++) {
             sId = iStartHeight + i + iStartLength;
 
-            this.map.addSource(sId + 'hLine', {
+            this.map.addSource(sId + 'hLinegeoref', {
                 'type': 'geojson',
                 'data': {
                     'type': 'Feature',
@@ -1066,10 +963,11 @@ Birdstrike = {
             });
 
             this.map.addLayer({
-                'id': sId + 'hLine',
+                'id': sId + 'hLinegeoref',
                 'type': 'line',
-                'source': sId + 'hLine',
+                'source': sId + 'hLinegeoref',
                 'layout': {
+                    'visibility': 'none',
                     'line-join': 'round',
                     'line-cap': 'round'
                 },
@@ -1077,14 +975,6 @@ Birdstrike = {
                     'line-color': '#3F9B93',
                     'line-width': 1
                 }
-            });
-
-
-            this.map.setLayoutProperty(sId + 'hLine', 'visibility', 'none');
-
-            //TODO keveb WHY PUSHED? 
-            this._aGeoZoneZoom.push({
-                'id': sId + 'hLine',
             });
         }
 
@@ -1102,94 +992,42 @@ Birdstrike = {
     },
 
     /**
-     * create Geo Json for GeoRefSystem Lines
+     * create Geo Json Zones for GeoRefSystem grid
      */
     createGeoRefGeoJson: async function() {
 
-        var sId;
-        for (var i = 0; i < aGeoRef.length; i++) {
-            var oGeoRef = aGeoRef[i];
+        for (var i = 0; i < this._aGeoRef.length; i++) {
+            var oGeoRef = this._aGeoRef[i];
 
-            if (this.bGeoZone) {
-                // Punkte auf den GeoRef-Linien abschalten
-                // if (oGeoRef.length != 15 && oGeoRef.heigth != 46 && oGeoRef.length != 17) {
-                // TODO keveb oGeoRef.letter + oGeoRef.length + oGeoRef.heigth + "georef" // Line 512
-                this.map.addSource(oGeoRef.letter + oGeoRef.length + oGeoRef.heigth, {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': [
-                                oGeoRef.length, oGeoRef.heigth
-                            ]
-                        }
+            var sId = oGeoRef.letter + oGeoRef.zone + 'areageoref';
+            this.map.addSource(sId, {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            oGeoRef.lngStart + 0.5, oGeoRef.latStart + 0.5
+                        ]
                     }
-                });
-            } else {
-                this.map.addSource(oGeoRef.letter + oGeoRef.length + oGeoRef.heigth, {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': [
-                                oGeoRef.length, oGeoRef.heigth
-                            ]
-                        }
-                    }
-                });
-            }
-
-            if (oGeoRef.letter !== "x" && oGeoRef.letter !== "c" && oGeoRef.letter !== "y") {
-
-                sId = oGeoRef.letter + 'area';
-
-                this._aGeoLetterZoom.push({
-                    'id': sId,
-                });
-
-                this.map.addSource(oGeoRef.letter + 'area', {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': [
-                                oGeoRef.length - 0.5, oGeoRef.heigth + 0.5
-                            ]
-                        }
-                    }
-                })
-            }
-
-            this.map.addLayer({
-                'id': oGeoRef.letter + oGeoRef.length + oGeoRef.heigth,
-                'type': 'circle',
-                'source': oGeoRef.letter + oGeoRef.length + oGeoRef.heigth,
-                'paint': {
-                    'circle-radius': 3,
-                    'circle-color': '#3F9B93'
-                },
+                }
             });
 
-            if (oGeoRef.letter !== "x" && oGeoRef.letter !== "c" && oGeoRef.letter !== "y") {
-                this.map.addLayer({
-                    "id": oGeoRef.letter + 'area',
-                    "type": "symbol",
-                    "source": oGeoRef.letter + 'area',
-                    "layout": {
-                        "text-field": this.sZone + oGeoRef.letter,
-                        "text-size": 13,
-                    },
-                    paint: {
-                        "text-color": "#3F9B93"
-                    }
-                });
-
-                this.map.setLayoutProperty(sId, 'visibility', 'none');
-            }
+            this.map.addLayer({
+                "id": sId,
+                "type": "symbol",
+                "source": sId,
+                "layout": {
+                    "visibility": "none",
+                    "text-field": oGeoRef.zone + oGeoRef.letter,
+                    "text-size": 13,
+                },
+                "paint": {
+                    "text-color": "#3F9B93"
+                }
+            });
         }
+
     },
 
     /**
@@ -1214,7 +1052,7 @@ Birdstrike = {
     openCrossSectionDialog: function() {
         this.iRadius = 50;
         this.setDataToCrossSectionDialog();
-        this.aCrossSectionModal.open();
+        this.oCrossSectionModal.open();
     },
 
 
@@ -1232,6 +1070,7 @@ Birdstrike = {
 
     /**
      * creates Dataset for Cross-Section Chart
+     * @returns {Object} Object with dataset for birdstrike chart
      */
     createCharData: function() {
         var oDataSet = {
@@ -1262,7 +1101,6 @@ Birdstrike = {
                 oDataSet["aDataSetColor" + this.getHeightLevelBasedOnHeight(oData.y)].push(oData);
             }
         }
-
 
         return {
             datasets: [{
@@ -1374,7 +1212,8 @@ Birdstrike = {
      * @param {Array} oInstancesModals Array with Modal instance
      */
     setModalInstances: function(oInstancesModals) {
-        this.aCrossSectionModal = oInstancesModals[0];
+        this.oCrossSectionModal = oInstancesModals[0];
+        this.oLoadingModal = oInstancesModals[1];
     }
 
 }

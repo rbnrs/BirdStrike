@@ -1,31 +1,39 @@
 <html>
 
 <head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'birdstrike.css' %}">
-    <link rel="stylesheet" href="{% static 'materialize.min.css' %}">
-    <link rel="stylesheet" href="{% static 'mapbox-gl.css' %}">
-    <link rel="icon" href="{% static 'icon.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="./static/birdstrike.css">
+    <link rel="stylesheet" href="./static/materialize.min.css">
+    <link rel="stylesheet" href="./static/mapbox-gl.css">
+    <link rel="icon" href="./static/icon.png" type="image/x-icon">
     <title>Birdstrike</title>
-    <script src="{% static 'materialize.min.js' %}"></script>
-    <script src="{% static 'Chart.min.js' %}"></script>
-    <script src="{% static 'turf.min.js' %}"></script>
-    <script src="{% static 'jquery-3.5.1.js' %}" ></script>
-    <script src="{% static 'birdstrike.js' %}"></script>
-    <script src="{% static 'mapbox-gl.js' %}"></script>
+    <script src="./static/materialize.min.js"></script>
+    <script src="./static/Chart.min.js"></script>
+    <script src="./static/turf.min.js"></script>
+    <script src="./static/jquery-3.5.1.js"></script>
+    <script src="./static/birdstrike.js"></script>
+    <script src="./static/mapbox-gl.js"></script>
     <meta name="viewport" content="height=device-height, initial-scale=1.0">
 </head>
 
 <body onload="Birdstrike.init()">
-    <div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: #201d1e">
+    <div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30);">
         <div class="loading-bar">
-            <img src="{% static 'logo.jpg' %}" width="300px">
+            <img src="/static/logo.jpg" width="300px">
         </div>
         <div class="progress loading-bar" style="width:20%">
             <div class="indeterminate"></div>
         </div>
     </div>
-    <div id="control-panel" class="box stack-top" style="pointer-events: none !important; display: none">
+    <div id="smww-panel"
+        style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30); display:none">
+        <div class="loading-bar">
+            <p style="color: white; font-size:45px">¯\_(ツ)_/¯</p>
+            <p style="color: white; font-size:15px">Something went wrong..... <br>Please reload the App or try it again
+                later.</p>
+        </div>
+
+    </div>
+    <div id="control-panel" class="box stack-top" style="pointer-events: none !important; display: none;">
         <div class="info-card">
             <div id="info-card" style="pointer-events: auto !important; visibility: visible">
                 <div class="side-div z-depth-5">
@@ -187,6 +195,23 @@
         </div>
         <div class="modal-footer">
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
+        </div>
+    </div>
+    <div id="loadingmodal" class="modal loading-modal" >
+        <div class="modal-content">
+            <div class="preloader-wrapper small active">
+                <div class="spinner-layer spinner-green-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                        <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script>

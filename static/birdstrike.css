@@ -79,6 +79,10 @@
     align-items: baseline;
 }
 
+.spinner-green-only {
+    border-color: #3F9B93 !important;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -93,6 +97,14 @@
     overflow-y: auto;
     border-radius: 2px;
     will-change: top;
+}
+
+.loading-modal {
+    text-align: center;
+    width: min-content !important;
+    top: 40% !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
 }
 
 .info-risk-nos {

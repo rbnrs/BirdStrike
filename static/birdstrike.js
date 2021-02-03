@@ -98,8 +98,11 @@ Birdstrike = {
             var iEndTime = (aEndTime[0] * 3600 + aEndTime[1] * 60) * 1000;
 
             $.getJSON("http://localhost:4200/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
-                this.aBirds = oData;
-                for (var b in this.aBirds) {
+                if (this.aBirds === undefined) {
+                    this.aBirds = [];
+                }
+                this.aBirds = this.aBirds.concat(oData);
+                for (var b in oData) {
                     var oBird = this.aBirds[b];
                     if (oBird.time !== undefined) {
                         oBird.alt = parseFloat(oBird.alt);

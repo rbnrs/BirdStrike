@@ -97,27 +97,33 @@ Birdstrike = {
             var iStartTime = (aStartTime[0] * 3600 + aStartTime[1] * 60) * 1000;
             var iEndTime = (aEndTime[0] * 3600 + aEndTime[1] * 60) * 1000;
 
-            $.getJSON("http://localhost:4200/data/birds/" + iStartTime + "/" + iEndTime, function(oData) {
-                if (this.aBirds === undefined) {
-                    this.aBirds = [];
-                }
-                this.aBirds = this.aBirds.concat(oData);
-                for (var b in oData) {
-                    var oBird = oData[b];
-                    if (oBird.time !== undefined) {
-                        oBird.alt = parseFloat(oBird.alt);
-                        oBird.lat = parseFloat(oBird.lat);
-                        oBird.lng = parseFloat(oBird.lng);
-                        oBird.time = this.getTimeString(oBird.time);
-                        var iMinutes = parseInt(oBird.time.split(":")[1]);
-                        this.setMarkerBasedOnTime(iMinutes, oBird);
-                        this.setMarkerBasedOnHeight(oBird.alt, oBird);
+            $.ajax({
+                crossOrigin: true,
+                url: "http://localhost:4200/data/birds/" + iStartTime + "/" + iEndTime,
+                success: function(oData) {
+                    if (this.aBirds === undefined) {
+                        this.aBirds = [];
                     }
+                    this.aBirds = this.aBirds.concat(oData);
+                    for (var b in oData) {
+                        var oBird = oData[b];
+                        if (oBird.time !== undefined) {
+                            oBird.alt = parseFloat(oBird.alt);
+                            oBird.lat = parseFloat(oBird.lat);
+                            oBird.lng = parseFloat(oBird.lng);
+                            oBird.time = this.getTimeString(oBird.time);
+                            var iMinutes = parseInt(oBird.time.split(":")[1]);
+                            this.setMarkerBasedOnTime(iMinutes, oBird);
+                            this.setMarkerBasedOnHeight(oBird.alt, oBird);
+                        }
 
+                    }
+                    resolve();
+                }.bind(this),
+                error: function(oError) {
+                    console.log(oError);
+                    reject();
                 }
-                resolve();
-            }.bind(this)).catch(function() {
-                reject();
             });
         }.bind(this));
     },
@@ -499,7 +505,9 @@ Birdstrike = {
         for (var iLayer in aLayers) {
             var oLayer = aLayers[iLayer];
             if (oLayer.id.includes(sId)) {
-                this.map.setLayoutProperty(oLayer.id, 'visibility', 'none', { "validate": true });
+                this.map.setLayoutProperty(oLayer.id, 'visibility', 'none', {
+                    "validate": true
+                });
                 if (sId === "georef") {
                     oLayerGeoRef = oLayer;
                 }
@@ -520,7 +528,9 @@ Birdstrike = {
         for (var iLayer in aLayers) {
             var oLayer = aLayers[iLayer];
             if (oLayer.id.includes(sId)) {
-                this.map.setLayoutProperty(oLayer.id, 'visibility', 'visible', { "validate": true });
+                this.map.setLayoutProperty(oLayer.id, 'visibility', 'visible', {
+                    "validate": true
+                });
                 if (sId === "georef") {
                     oLayerGeoRef = oLayer;
                 }

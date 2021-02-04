@@ -103,7 +103,7 @@ Birdstrike = {
                 }
                 this.aBirds = this.aBirds.concat(oData);
                 for (var b in oData) {
-                    var oBird = this.aBirds[b];
+                    var oBird = oData[b];
                     if (oBird.time !== undefined) {
                         oBird.alt = parseFloat(oBird.alt);
                         oBird.lat = parseFloat(oBird.lat);

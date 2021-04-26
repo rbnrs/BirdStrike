@@ -4,7 +4,9 @@ const path = require('path');
 const port = 3000;
 
 
-app.use('/static', express.static(path.join(__dirname, '/static')));
+app.use('/src', express.static(path.join(__dirname, '/src')));
+app.use('/node_modules', express.static(path.join(__dirname, '/node_modules')));
+
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

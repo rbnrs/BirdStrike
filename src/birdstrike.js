@@ -1,3 +1,9 @@
+const M = require('materialize-css'),
+    mapboxgl = require('mapbox-gl'),
+    turf = require('@turf/turf'),
+    $ = require('jquery'),
+    Chart = require('chart.js');
+
 Birdstrike = {
 
     _aColors: {
@@ -34,8 +40,24 @@ Birdstrike = {
 
 
     init: function() {
+        this._initializeMaterial();
         this._setMapSettings();
         this.bStarted = true;
+    },
+
+    _initializeMaterial: function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            var oElemsdrop = document.querySelectorAll('.dropdown-trigger');
+            M.Dropdown.init(oElemsdrop, {});
+
+            var oElems = document.querySelectorAll("input[type=range]");
+            M.Range.init(oElems);
+
+            var oElemsmodal = document.querySelectorAll('.modal');
+            var oInstancesmodal = M.Modal.init(oElemsmodal, {});
+
+            this.setModalInstances(oInstancesmodal);
+        });
     },
 
     /** 

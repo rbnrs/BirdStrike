@@ -1,35 +1,29 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="./static/birdstrike.css">
-    <link rel="stylesheet" href="./static/materialize.min.css">
-    <link rel="stylesheet" href="./static/mapbox-gl.css">
-    <link rel="icon" href="./static/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="/src/birdstrike.css">
+    <link rel="stylesheet" href="/node_modules/materialize-css/dist/css/materialize.min.css">
+    <link rel="stylesheet" href="/node_modules/mapbox-gl/dist/mapbox-gl.css" />
+    <link rel="icon" href="./src/icon.png" type="image/x-icon">
     <title>Birdstrike</title>
-    <script src="./static/materialize.min.js"></script>
-    <script src="./static/Chart.min.js"></script>
-    <script src="./static/turf.min.js"></script>
-    <script src="./static/jquery-3.5.1.js"></script>
-    <script src="./static/birdstrike.js"></script>
-    <script src="./static/mapbox-gl.js"></script>
+    <script src="/src/bundle.js"></script>
     <meta name="viewport" content="height=device-height, initial-scale=1.0">
 </head>
 
 <body onload="Birdstrike.init()">
     <div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30);">
         <div class="loading-bar">
-            <img src="/static/logo.jpg" width="300px">
+            <img src="/src/logo.jpg" width="300px">
         </div>
         <div class="progress loading-bar" style="width:20%">
             <div class="indeterminate"></div>
         </div>
     </div>
-    <div id="smww-panel"
-        style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30); display:none">
+    <div id="smww-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30); display:none">
         <div class="loading-bar">
             <p style="color: white; font-size:45px">¯\_(ツ)_/¯</p>
-            <p style="color: white; font-size:15px">Something went wrong..... <br>Please reload the App or try it again
-                later.</p>
+            <p style="color: white; font-size:15px">Something went wrong..... <br>Please reload the App or try it again later.
+            </p>
         </div>
 
     </div>
@@ -63,18 +57,12 @@
             </div>
             <div class="legend non-touchable">
                 <div style="float: right; display: inline-flex; pointer-events: auto !important;">
-                    <button id="crosssecbtn" class="waves-effect waves-light btn"
-                        style="background-color: #3F9B93; margin-right: 15px; visibility: hidden"
-                        onclick="Birdstrike.openCrossSectionDialog()">Querschnitt anzeigen</button>
-                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
-                        onclick="Birdstrike.startTimeLapse()">Start</button>
-                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
-                        onclick="Birdstrike.pauseTimeLapse()">Pause</button>
-                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93"
-                        onclick="Birdstrike.clearMapView()">Zurücksetzen</button>
+                    <button id="crosssecbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" onclick="Birdstrike.openCrossSectionDialog()">Querschnitt anzeigen</button>
+                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" onclick="Birdstrike.startTimeLapse()">Start</button>
+                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" onclick="Birdstrike.pauseTimeLapse()">Pause</button>
+                    <button class="waves-effect waves-light btn" style="background-color: #3F9B93" onclick="Birdstrike.clearMapView()">Zurücksetzen</button>
 
-                    <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1'
-                        style="background-color: #3F9B93; width:200px; margin-left: 40px">Zeitraffer auswählen</a>
+                    <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1' style="background-color: #3F9B93; width:200px; margin-left: 40px">Zeitraffer auswählen</a>
 
                     <ul id='dropdown1' class='dropdown-content' onclick="Birdstrike.changeTime(event)">
                         <li><a href="#!">100 ms</a></li>
@@ -88,8 +76,7 @@
                 </div>
                 <div class="non-touchable">
                     <div class="non-touchable">
-                        <div class="card white darken-1 height-legend non-touchable"
-                            style="background-color: #1f1e1e !important; width: max-content; pointer-events: auto !important;">
+                        <div class="card white darken-1 height-legend non-touchable" style="background-color: #1f1e1e !important; width: max-content; pointer-events: auto !important;">
                             <div class="switch raster-switch">
                                 <label class="raster-label">
                                     <input type="checkbox" onchange="Birdstrike.setGeoRefSquares(event)">
@@ -184,8 +171,7 @@
                 <div class="info-slider-radius">
                     <form action="#">
                         <p class="range-field">
-                            <input type="range" id="test5" min="10" max="250" value="50"
-                                onchange="Birdstrike.changeDialogRadius(event)" />
+                            <input type="range" id="test5" min="10" max="250" value="50" onchange="Birdstrike.changeDialogRadius(event)" />
                         </p>
                     </form>
                 </div>
@@ -197,7 +183,7 @@
             <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
         </div>
     </div>
-    <div id="loadingmodal" class="modal loading-modal" >
+    <div id="loadingmodal" class="modal loading-modal">
         <div class="modal-content">
             <div class="preloader-wrapper small active">
                 <div class="spinner-layer spinner-green-only">
@@ -215,7 +201,7 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             var elemsdrop = document.querySelectorAll('.dropdown-trigger');
             var instancesdrop = M.Dropdown.init(elemsdrop, {
 

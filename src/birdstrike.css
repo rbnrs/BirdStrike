@@ -1,4 +1,11 @@
-#map {
+#TwoDMap {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    pointer-events: auto;
+}
+
+#ThreeDMap {
     height: 100%;
     width: 100%;
     position: absolute;
@@ -25,7 +32,7 @@
 }
 
 .side-div {
-    height: 175px;
+    height: 160px;
     width: 250px;
     background-color: #1f1e1e;
     margin-top: 20px;
@@ -115,20 +122,22 @@
 .birdstrike-highest {
     color: #3F9B93;
     text-align: end;
+    font-size: 35px;
     margin-top: 5px;
+    margin-bottom: 0px;
 }
 
 .last-update {
     color: #3F9B93;
     text-align: end;
-    font-size: 35px;
+    font-size: 30px;
     margin-top: 5px;
 }
 
 .birdstrike-direction {
     color: #3F9B93;
     text-align: end;
-    font-size: 35px;
+    font-size: 30px;
     margin-top: 5px;
 }
 
@@ -152,7 +161,7 @@
 
 @media (max-height: 900px) {
     .side-div {
-        height: 140px !important;
+        height: 120px !important;
         width: 250px;
         background-color: #1f1e1e;
         margin-top: 20px !important;
@@ -186,13 +195,13 @@
     .last-update {
         color: #3F9B93;
         text-align: end;
-        font-size: 30px;
+        font-size: 20px;
         margin-top: 5px;
     }
     .birdstrike-direction {
         color: #3F9B93;
         text-align: end;
-        font-size: 30px;
+        font-size: 20px;
         margin-top: 5px;
     }
     .address-lat-lng {

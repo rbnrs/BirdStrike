@@ -13,22 +13,14 @@ import Map from '@arcgis/core/Map';
 export class ThreeDMapController {
 
 
-  static oHeightLayer = {
-    1: null,
-    2: null,
-    3: null,
-    4: null,
-    5: null,
-    6: null,
-    7: null,
-    8: null,
-    9: null,
-    10: null
-  };
+  static oHeightLayer = {};
+  static oTimeLayer = {};
 
   static oMap: Map;
+  static _currentMinute: any;
+  static timeLapseInterval: any;
 
-  static async loadMap() {
+  static async loadMap(): Promise<void>{
 
     return new Promise < void > ((resolve, reject) => {
 
@@ -86,6 +78,38 @@ export class ThreeDMapController {
 
           this.oHeightLayer[i] = oGraphicLayer;
 
+        }
+
+        for(let iMinute = 0; iMinute < 60; iMinute++){
+          const oGraphicLayer = new GraphicsLayer();
+          for(const oBird of AppModule.aBirds){
+            if(oBird.getMinutes() === iMinute){
+              const point = { // Create a point
+                type: 'point',
+                longitude: oBird.dLng,
+                latitude: oBird.dLat,
+                z: oBird.dAlt
+              };
+
+              const simpleMarkerSymbol = {
+                type: 'simple-marker',
+                color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()),
+                size: 2,
+                outline: {
+                  color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()), // White
+                  width: 1
+                }
+              };
+
+              const pointGraphic = new Graphic({
+                geometry: point as any,
+                symbol: simpleMarkerSymbol
+              });
+
+              oGraphicLayer.add(pointGraphic);
+            }
+          }
+          this.oTimeLayer[iMinute] = oGraphicLayer;
         }
 
 
@@ -151,18 +175,66 @@ export class ThreeDMapController {
 
   }
 
-  static disableHeightLayers(){
+
+  static startTimeLapse(iTimeMs: number): void{
+    if (!iTimeMs) {
+      alert('Bitte erst Zeitraffer auswählen');
+      return;
+    }
+
+    this.disableHeightLayers();
+
+    if (!this._currentMinute) {
+      this._currentMinute = 0;
+    }
+
+    // interval based on timelapse ms
+    this.timeLapseInterval = setInterval(() => {
+      this.setTimeLayer(this._currentMinute);
+      // repeat if minutes = 59
+      if (this._currentMinute === 59) {
+        this._currentMinute = 0;
+        this.removeAllTimeLayers();
+      } else {
+        this._currentMinute++;
+      }
+
+      document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
+
+    }, iTimeMs);
+  }
+
+   static async setTimeLayer(iMinute: number): Promise<void>{
+    const oLayer = this.oTimeLayer[iMinute];
+    this.oMap.add(oLayer);
+  }
+
+  static removeAllTimeLayers(): void{
+
+    for(let iMinute = 0; iMinute < 59; iMinute++){
+      const oLayer = this.oTimeLayer[iMinute];
+      if(this.oMap.layers.includes(oLayer)){
+        this.oMap.remove(oLayer);
+      }
+    }
+    document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
+
+  }
+
+  static disableHeightLayers(): void{
 
     for (let i = 1; i <= 10; i++) {
       const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
       oInput.checked = false;
       const oLayer = this.oHeightLayer[i];
-      this.oMap.remove(oLayer);
+      if(this.oMap.layers.includes(oLayer)){
+        this.oMap.remove(oLayer);
+      }
     }
 
   }
 
-  static async setHeightLayer(iHeightLevel: number){
+  static async setHeightLayer(iHeightLevel: number): Promise<void>{
     const oLayer = this.oHeightLayer[iHeightLevel];
     if(this.oMap.layers.includes(oLayer)){
       this.oMap.remove(oLayer);

@@ -171,21 +171,35 @@ from 'src/app/controller/3dmap.controller';
    * clear Map View
    */
   clearMapView(): void {
-    TwoDMapController.clearLayers();
+    if(this.is3D){
+      ThreeDMapController.removeAllTimeLayers();
+    }else{
+      TwoDMapController.clearLayers();
+    }
+
   }
 
   /**
    * pause Time Lapse
    */
   pauseTimeLapse(): void {
-    clearInterval(TwoDMapController.timeLapseInterval);
+    if(this.is3D){
+      clearInterval(ThreeDMapController.timeLapseInterval);
+    }else{
+      clearInterval(TwoDMapController.timeLapseInterval);
+    }
   }
 
   /**
    * start Time Lapse
    */
   startTimeLapse(): void {
-    TwoDMapController.setGeoJsonTimeMarkers(this.iTimeMs);
+    if(this.is3D){
+      ThreeDMapController.startTimeLapse(this.iTimeMs);
+    }else{
+      TwoDMapController.setGeoJsonTimeMarkers(this.iTimeMs);
+    }
+
   }
 
 

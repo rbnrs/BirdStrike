@@ -48,7 +48,8 @@
         </div>
         <div class="legend non-touchable">
             <div style="float: right; display: inline-flex; pointer-events: auto !important;">
-                <button id="threedviewbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="show3dViewer()">3D Darstellung</button>
+                <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" (click)="createScreenshot()">Screenshot</button>
+                <button id="threedviewbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="set3DView()">3D Darstellung</button>
                 <button id="crosssecbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="openCrossSectionDialog()">Querschnitt anzeigen</button>
                 <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" (click)="startTimeLapse()">Start</button>
                 <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" (click)="pauseTimeLapse()">Pause</button>
@@ -154,6 +155,7 @@
     </div>
 </div>
 <div id="TwoDMap" class="map box" style="visibility: hidden"></div>
+<div id="ScreenshotMap" class="map box" style="visibility: hidden"></div>
 <div id="crosssectionmodal" class="modal" style="width: 60% !important">
     <div class="modal-content">
         <p class="address-lat-lng"></p>

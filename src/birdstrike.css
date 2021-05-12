@@ -12,6 +12,10 @@
     pointer-events: auto;
 }
 
+html {
+    overflow: hidden !important;
+}
+
 .box {
     position: absolute;
     top: 0;
@@ -288,4 +292,12 @@
 .color-ft-9-10[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #FF03B9;
     border: 2px solid #FF03B9;
+}
+
+.esri-view .esri-view-surface--inset-outline:focus::after {
+    outline: none !important;
+}
+
+.esri-attribution {
+    display: none !important;
 }

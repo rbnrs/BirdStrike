@@ -1,69 +1,38 @@
-import {
-  Georef
-}
-
-from './../../utils/georef.utils';
-
 import * as $ from 'jquery';
-import * as turf from '@turf/turf';
 
-import {
-  Units
-}
-
-from '@turf/helpers';
 
 import * as M from 'materialize-css/dist/js/materialize';
 
 import {
   Router,
   ActivatedRoute
-}
-
-from '@angular/router';
+} from '@angular/router';
 
 import {
   Component,
   OnInit
-}
-
-from '@angular/core';
+} from '@angular/core';
 
 import {
   Bird
-}
+} from 'src/app/utils/bird.utils';
 
-from 'src/app/utils/bird.utils';
-
-import {
-  Colors
-}
-
-from 'src/app/utils/colors.utils';
 
 import {
   AppModule
-}
-
-from 'src/app/app.module';
+} from 'src/app/app.module';
 
 import {
   TwoDMapController
-}
-
-from 'src/app/controller/2dmap.controller';
+} from 'src/app/controller/2dmap.controller';
 
 import {
   CrossSectionController
-}
-
-from 'src/app/controller/crossection.controller';
+} from 'src/app/controller/crossection.controller';
 
 import {
   ThreeDMapController
-}
-
-from 'src/app/controller/3dmap.controller';
+} from 'src/app/controller/3dmap.controller';
 
 
 @Component({
@@ -85,21 +54,18 @@ from 'src/app/controller/3dmap.controller';
   ngOnInit(): void {
 
     if (AppModule.bStarted === false) {
-
-
-      TwoDMapController.setMapSettings();
-      this.setBirdstrikeRefreshInterval();
-      this._readMapData();
-      AppModule.bStarted = true;
-
+     this._readMapData();
+     AppModule.bStarted = true;
 
     } else {
       document.getElementById('loading-panel').style.display = 'none';
       document.getElementById('control-panel').style.display = '';
       document.getElementById('TwoDMap').style.visibility = 'visible';
-      TwoDMapController.setMapSettings();
-      this.setBirdstrikeRefreshInterval();
     }
+
+    TwoDMapController.setMapSettings();
+    ThreeDMapController.initializeMap();
+    this.setBirdstrikeRefreshInterval();
 
   }
 
@@ -160,9 +126,9 @@ from 'src/app/controller/3dmap.controller';
    * @param clickevent of Checkbox
    */
   changeMapView(iHeight: number, oEvent: any): void {
-    if(this.is3D){
+    if (this.is3D) {
       ThreeDMapController.setHeightLayer(iHeight);
-    }else{
+    } else {
       TwoDMapController.setMapHeightLayer(iHeight, oEvent);
     }
   }
@@ -171,9 +137,9 @@ from 'src/app/controller/3dmap.controller';
    * clear Map View
    */
   clearMapView(): void {
-    if(this.is3D){
+    if (this.is3D) {
       ThreeDMapController.removeAllTimeLayers();
-    }else{
+    } else {
       TwoDMapController.clearLayers();
     }
 
@@ -183,9 +149,9 @@ from 'src/app/controller/3dmap.controller';
    * pause Time Lapse
    */
   pauseTimeLapse(): void {
-    if(this.is3D){
+    if (this.is3D) {
       clearInterval(ThreeDMapController.timeLapseInterval);
-    }else{
+    } else {
       clearInterval(TwoDMapController.timeLapseInterval);
     }
   }
@@ -194,9 +160,9 @@ from 'src/app/controller/3dmap.controller';
    * start Time Lapse
    */
   startTimeLapse(): void {
-    if(this.is3D){
+    if (this.is3D) {
       ThreeDMapController.startTimeLapse(this.iTimeMs);
-    }else{
+    } else {
       TwoDMapController.setGeoJsonTimeMarkers(this.iTimeMs);
     }
 
@@ -213,7 +179,7 @@ from 'src/app/controller/3dmap.controller';
     this.resetMapData();
     let dStartTime = new Date(Date.now());
     const aRequests = [];
-    const iQueries = 60;
+    const iQueries = 12;
 
     for (let iQuery = 0; iQuery < iQueries; iQuery++) {
       let dEndTime = new Date(dStartTime);
@@ -235,7 +201,7 @@ from 'src/app/controller/3dmap.controller';
 
     const aPromises = [];
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < iQueries; i++) {
       aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
     }
 
@@ -243,6 +209,9 @@ from 'src/app/controller/3dmap.controller';
     Promise.all(aPromises).then(() => {
         TwoDMapController.setGeoJsonMarkers();
         TwoDMapController.addTimeLayerToMap();
+        if (this.is3D) {
+          ThreeDMapController.loadMap();
+        }
         const dCurrentDate = new Date(Date.now());
         this.sLocalDate = dCurrentDate.toLocaleDateString();
         const aTimes = dCurrentDate.toLocaleTimeString().split(':', 2);
@@ -302,6 +271,7 @@ from 'src/app/controller/3dmap.controller';
                     const oBird = new Bird(parseFloat(oBirdData.alt), parseFloat(oBirdData.lng), parseFloat(oBirdData.lat), oBirdData.time);
 
                     for (const oGeoRef of AppModule.GEOREF) {
+                      // tslint:disable-next-line: max-line-length
                       if (oBird.dLat >= oGeoRef.iLatStart && oBird.dLat <= oGeoRef.iLatEnd && oBird.dLng >= oGeoRef.iLngStart && oBird.dLng <= oGeoRef.iLngEnd) {
                         oBird.sGeoRef = oGeoRef.sZone + '' + oGeoRef.sLetter;
                         break;
@@ -309,15 +279,19 @@ from 'src/app/controller/3dmap.controller';
                     }
 
                     AppModule.aBirds.push(oBird);
-                    let oMap = TwoDMapController.getMapObject();
-
+                    const oMap = TwoDMapController.getMapObject();
+                    TwoDMapController.setMarkerBasedOnTime(oBird.getMinutes(), oBird);
+                    TwoDMapController.setMarkerBasedOnHeight(oBird.dAlt, oBird);
+                    resolve();
+                    /*
                     oMap.on('styledata', () => {
-                        TwoDMapController.setMarkerBasedOnTime(oBird.getMinutes(), oBird);
-                        TwoDMapController.setMarkerBasedOnHeight(oBird.dAlt, oBird);
-                        resolve();
+
+
                       }
 
                     );
+
+                    */
 
                   }
                 }
@@ -390,7 +364,11 @@ from 'src/app/controller/3dmap.controller';
     AppModule.oCrossSectionModal.open();
   }
 
-  show3dViewer(): void {
+  set3DView(): void {
+    this.show3dViewer();
+  }
+
+  async show3dViewer(): Promise < void > {
     AppModule.oLoadingModal.open();
     if (!this.is3D) {
       TwoDMapController.disableHeightLayers();
@@ -399,7 +377,7 @@ from 'src/app/controller/3dmap.controller';
       ]).then(() => {
         document.getElementById('ThreeDMap').style.visibility = 'visible';
         document.getElementById('TwoDMap').style.visibility = 'hidden';
-        document.getElementById('threedviewbtn').innerHTML = "2D Darstellung"
+        document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
         this.is3D = true;
         AppModule.oLoadingModal.close();
       });
@@ -408,11 +386,17 @@ from 'src/app/controller/3dmap.controller';
       ThreeDMapController.disableHeightLayers();
       document.getElementById('ThreeDMap').style.visibility = 'hidden';
       document.getElementById('TwoDMap').style.visibility = 'visible';
-      document.getElementById('threedviewbtn').innerHTML = "3D Darstellung"
+      document.getElementById('threedviewbtn').innerHTML = '3D Darstellung';
       this.is3D = false;
       AppModule.oLoadingModal.close();
     }
 
+  }
+
+  //TODO remove after testing
+  createScreenshot(): void {
+    //TwoDMapController.createTimeLayerScreenshot();
+    ThreeDMapController.createScreenShot();
   }
 
 }

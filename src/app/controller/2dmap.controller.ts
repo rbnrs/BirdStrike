@@ -1,6 +1,6 @@
 import {
   AppModule
-} from "../app.module";
+} from '../app.module';
 import {
   Map,
   Marker,
@@ -8,27 +8,30 @@ import {
 } from 'mapbox-gl';
 import {
   Colors
-} from "../utils/colors.utils";
+} from '../utils/colors.utils';
 import {
   Bird
-} from "../utils/bird.utils";
+} from '../utils/bird.utils';
 import {
   Georef
-} from "../utils/georef.utils";
+} from '../utils/georef.utils';
 
 export class TwoDMapController {
 
   static _currentMinute: number;
   static _ACCESS_TOKEN: string;
   static _MAP: Map;
+  static _SCREENSHOT_MAP: Map;
   static oCurrentMarker: any;
   static timeLapseInterval: any;
   static bGeoZone: boolean;
   _timeLapseInterval: any;
+  // tslint:disable-next-line: member-ordering
   static iTimeMs: any;
   static oMapPopup: any;
   static iHighestBird: number;
   static iBirdStrikeCount: number;
+  static bSnapShot = false;
 
   /**
    * set settings and config for mapview
@@ -49,8 +52,26 @@ export class TwoDMapController {
           zoom: 6
         });
 
-        this._MAP.on('load', () => {
+        this._SCREENSHOT_MAP = new Map({
+          accessToken: this._ACCESS_TOKEN,
+          container: 'ScreenshotMap',
+          style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
+          center: [10.447683, 51.163361],
+          minZoom: 5,
+          zoom: 6
+        });
+
+        this._MAP.dragRotate.disable();
+
+        this._MAP.once('load', () => {
           this.mapOnLoaded();
+        });
+
+        this._SCREENSHOT_MAP.on('sourcedata', () => {
+          if(this.bSnapShot){
+            console.log(this._SCREENSHOT_MAP.getCanvas().toDataURL('image/png'));
+          }
+
         });
 
         this._MAP.on('zoom', () => {
@@ -185,9 +206,16 @@ export class TwoDMapController {
     // interval based on timelapse ms
     this.timeLapseInterval = setInterval(() => {
       for (let iColor = 1; iColor <= 10; iColor++) {
-        const layerId = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
-        if (this._MAP.getLayer(layerId)) {
-          this._MAP.setLayoutProperty(layerId, 'visibility', 'visible');
+        const iLastMinute = this._currentMinute - 1 === -1 ? 59 : this._currentMinute - 1;
+        const layerIdCurrent = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
+        const layerIdLast =  'minutes' + iLastMinute + Colors.getColorByLevel(iColor);
+
+        if (this._MAP.getLayer(layerIdLast)) {
+          this._MAP.setLayoutProperty(layerIdLast, 'visibility', 'none');
+        }
+
+        if (this._MAP.getLayer(layerIdCurrent)) {
+          this._MAP.setLayoutProperty(layerIdCurrent, 'visibility', 'visible');
         }
 
       }
@@ -205,7 +233,7 @@ export class TwoDMapController {
   }
 
 
-  static disableHeightLayers() {
+  static disableHeightLayers(): void{
 
    for (let i = 1; i <= 10; i++) {
       const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
@@ -232,7 +260,7 @@ export class TwoDMapController {
 
     document.getElementById('info-address').innerHTML = sGeoRef;
     document.getElementById('info-latlng').innerHTML = AppModule.oLatLng.lat + '<br>' + AppModule.oLatLng.lng;
-    //document.getElementById('info-bird-dir').style.display = 'block';
+    // document.getElementById('info-bird-dir').style.display = 'block';
     document.getElementById('info-risk-con').style.display = 'block';
     document.getElementById('info-risk-nosc').style.display = 'none';
   }
@@ -428,7 +456,7 @@ export class TwoDMapController {
         const oLayer = aLayers[iLayer];
         if (oLayer.id.includes(sId)) {
           this._MAP.setLayoutProperty(oLayer.id, 'visibility', 'visible', {
-            validate: true
+            validate: false
           });
           if (sId === 'georef') {
             oLayerGeoRef = oLayer;
@@ -487,7 +515,7 @@ export class TwoDMapController {
 
   }
 
-  static clearLayers() {
+  static clearLayers(): void {
     this._currentMinute = 0;
     clearInterval(this.timeLapseInterval);
     document.getElementById('info-minute').innerHTML = '0';
@@ -522,7 +550,7 @@ export class TwoDMapController {
 
 
 
-  static setMapHeightLayer(iHeight: number, oEvent: any) {
+  static setMapHeightLayer(iHeight: number, oEvent: any): void {
     const bChecked = oEvent.target.checked;
 
     if (this.timeLapseInterval !== null) {
@@ -665,7 +693,7 @@ export class TwoDMapController {
     });
   }
 
-  static clearMapView() {
+  static clearMapView(): void {
     this.clearLayers();
   }
 
@@ -842,5 +870,43 @@ export class TwoDMapController {
     }
   }
 
+  static createTimeLayerScreenshot(): void{
 
+    const iMinute = 1;
+    this.bSnapShot = true;
+
+    for (let iColor = 1; iColor <= 10; iColor++) {
+      if (AppModule.aTimeArray[iMinute] !== undefined && AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
+        AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
+
+        const layerId = 'screenshot' + iMinute + Colors.getColorByLevel(iColor);
+        if (this._SCREENSHOT_MAP.getLayer(layerId)) {
+          this._SCREENSHOT_MAP.removeLayer(layerId);
+        }
+        if (this._SCREENSHOT_MAP.getSource(layerId)) {
+          this._SCREENSHOT_MAP.removeSource(layerId);
+        }
+        this._SCREENSHOT_MAP.addSource(layerId, {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)]
+          }
+        });
+
+        this._SCREENSHOT_MAP.addLayer({
+          id: layerId,
+          type: 'circle',
+          layout: {
+            visibility: 'none'
+          },
+          source: layerId,
+          paint: {
+            'circle-radius': 2,
+            'circle-color': Colors.getColorByLevel(iColor)
+          },
+        });
+      }
+    }
+  }
 }

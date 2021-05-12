@@ -11,22 +11,30 @@ import {
 } from '../utils/colors.utils';
 import Map from '@arcgis/core/Map';
 export class ThreeDMapController {
-
-
   static oHeightLayer = {};
   static oTimeLayer = {};
 
   static oMap: Map;
   static _currentMinute: any;
   static timeLapseInterval: any;
+  static _oSceneView: SceneView;
 
-  static async loadMap(): Promise<void>{
+  static async initializeMap(): Promise < void > {
+
+    Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
+
+
+    this.oMap = new Map({
+      basemap: 'dark-gray-vector' // Basemap layer service
+    });
+
+  }
+
+  static async loadMap(): Promise < void > {
 
     return new Promise < void > ((resolve, reject) => {
 
       try {
-
-        Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
 
         let oCurrentGeoRef;
         let sCurrentGeoRef;
@@ -40,13 +48,13 @@ export class ThreeDMapController {
           }
         }
 
-        for(let i = 1; i  <= 10; i++){
+        for (let i = 1; i <= 10; i++) {
           const oGraphicLayer = new GraphicsLayer();
           for (const oBird of AppModule.aBirds) {
 
-            if(oBird.sGeoRef === AppModule.sCurrentGeoRef){
+            if (oBird.sGeoRef === AppModule.sCurrentGeoRef) {
 
-              if(oBird.getHeightLevelBasedOnHeight() === i){
+              if (oBird.getHeightLevelBasedOnHeight() === i) {
 
                 const point = { // Create a point
                   type: 'point',
@@ -80,10 +88,10 @@ export class ThreeDMapController {
 
         }
 
-        for(let iMinute = 0; iMinute < 60; iMinute++){
+        for (let iMinute = 0; iMinute < 60; iMinute++) {
           const oGraphicLayer = new GraphicsLayer();
-          for(const oBird of AppModule.aBirds){
-            if(oBird.getMinutes() === iMinute){
+          for (const oBird of AppModule.aBirds) {
+            if (oBird.getMinutes() === iMinute) {
               const point = { // Create a point
                 type: 'point',
                 longitude: oBird.dLng,
@@ -113,10 +121,6 @@ export class ThreeDMapController {
         }
 
 
-        this.oMap = new Map({
-          basemap: 'dark-gray-vector' // Basemap layer service
-        });
-
         const clippingMin = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngStart, oCurrentGeoRef.iLatStart);
         const clippingMax = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngEnd, oCurrentGeoRef.iLatEnd);
 
@@ -135,13 +139,12 @@ export class ThreeDMapController {
           (oCurrentGeoRef.iLatStart + oCurrentGeoRef.iLatEnd) / 2
         ];
 
-
-        // tslint:disable-next-line: no-unused-expression
-        const oSceneView = new SceneView({
+        this._oSceneView = new SceneView({
           container: 'ThreeDMap',
           map: this.oMap,
           // Indicates to create a local scene
           viewingMode: 'local',
+          qualityProfile: 'low',
           // Use the exent defined in clippingArea to define the bounds of the scene
           clippingArea: mapExtent,
           extent: mapExtent,
@@ -164,6 +167,9 @@ export class ThreeDMapController {
           }
         });
 
+        //TODO remove after testing
+        this.setHeightLayer(5);
+
         resolve();
 
       } catch (e) {
@@ -176,7 +182,7 @@ export class ThreeDMapController {
   }
 
 
-  static startTimeLapse(iTimeMs: number): void{
+  static startTimeLapse(iTimeMs: number): void {
     if (!iTimeMs) {
       alert('Bitte erst Zeitraffer auswählen');
       return;
@@ -204,16 +210,16 @@ export class ThreeDMapController {
     }, iTimeMs);
   }
 
-   static async setTimeLayer(iMinute: number): Promise<void>{
+  static async setTimeLayer(iMinute: number): Promise < void > {
     const oLayer = this.oTimeLayer[iMinute];
     this.oMap.add(oLayer);
   }
 
-  static removeAllTimeLayers(): void{
+  static removeAllTimeLayers(): void {
 
-    for(let iMinute = 0; iMinute < 59; iMinute++){
+    for (let iMinute = 0; iMinute <= 59; iMinute++) {
       const oLayer = this.oTimeLayer[iMinute];
-      if(this.oMap.layers.includes(oLayer)){
+      if (this.oMap.layers.includes(oLayer)) {
         this.oMap.remove(oLayer);
       }
     }
@@ -221,26 +227,34 @@ export class ThreeDMapController {
 
   }
 
-  static disableHeightLayers(): void{
+  static disableHeightLayers(): void {
 
     for (let i = 1; i <= 10; i++) {
       const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
       oInput.checked = false;
       const oLayer = this.oHeightLayer[i];
-      if(this.oMap.layers.includes(oLayer)){
+      if (this.oMap.layers.includes(oLayer)) {
         this.oMap.remove(oLayer);
       }
     }
 
   }
 
-  static async setHeightLayer(iHeightLevel: number): Promise<void>{
+  static async setHeightLayer(iHeightLevel: number): Promise < void > {
     const oLayer = this.oHeightLayer[iHeightLevel];
-    if(this.oMap.layers.includes(oLayer)){
+    if (this.oMap.layers.includes(oLayer)) {
       this.oMap.remove(oLayer);
-    }else{
+    } else {
       this.oMap.add(oLayer);
     }
+  }
+
+  static async createScreenShot() {
+
+    const oScreenShot = await this._oSceneView.takeScreenshot({
+      format: "jpg",
+      quality: 70
+    });
   }
 
 }

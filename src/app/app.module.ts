@@ -35,5 +35,6 @@ export class AppModule{
   static oCrossSectionModal: any;
   static sCurrentGeoRef: string;
   static aBirds: Bird[] = [];
+  static oThreeDModal: any;
 
 }

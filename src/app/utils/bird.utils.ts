@@ -5,13 +5,15 @@ export class Bird {
   dLng: number;
   sTime: string;
   sGeoRef: string;
+  iTime: number;
 
   constructor(dAlt: number, dLng: number, dLat: number, iTime: number) {
 
     this.dAlt = dAlt;
     this.dLng = dLng;
     this.dLat = dLat;
-    this.sTime = this.getTimeString(iTime);
+    //this.sTime = this.getTimeString(iTime);
+    this.iTime = iTime;
   }
 
   /**
@@ -31,7 +33,8 @@ export class Bird {
    * returns minutes of bird time
    */
   getMinutes(): number{
-    return parseInt(this.sTime.split(':')[1], 10);
+   // return parseInt(this.sTime.split(':')[1], 10);
+   return this.iTime;
   }
 
   /**
@@ -41,23 +44,23 @@ export class Bird {
 
     if (this.dAlt < 1000) {
       return 1;
-    } else if (this.dAlt < 3000) {
+    } else if (this.dAlt < 2000) {
       return 2;
-    } else if (this.dAlt < 5000) {
+    } else if (this.dAlt < 3000) {
       return 3;
-    } else if (this.dAlt < 10000) {
+    } else if (this.dAlt < 4000) {
       return 4;
-    } else if (this.dAlt < 15000) {
+    } else if (this.dAlt < 5000) {
       return 5;
-    } else if (this.dAlt < 20000) {
+    } else if (this.dAlt < 6000) {
       return 6;
-    } else if (this.dAlt < 25000) {
+    } else if (this.dAlt < 7000) {
       return 7;
-    } else if (this.dAlt < 30000) {
+    } else if (this.dAlt < 8000) {
       return 8;
-    } else if (this.dAlt < 35000) {
+    } else if (this.dAlt < 10000) {
       return 9;
-    } else if (this.dAlt > 35000) {
+    } else if (this.dAlt >= 10000) {
       return 10;
     }
   }

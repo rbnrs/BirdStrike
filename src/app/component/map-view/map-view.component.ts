@@ -54,8 +54,8 @@ import {
   ngOnInit(): void {
 
     if (AppModule.bStarted === false) {
-     this._readMapData();
-     AppModule.bStarted = true;
+      this._readMapData();
+      AppModule.bStarted = true;
 
     } else {
       document.getElementById('loading-panel').style.display = 'none';
@@ -179,7 +179,7 @@ import {
     this.resetMapData();
     let dStartTime = new Date(Date.now());
     const aRequests = [];
-    const iQueries = 12;
+    const iQueries = 1;
 
     for (let iQuery = 0; iQuery < iQueries; iQuery++) {
       let dEndTime = new Date(dStartTime);
@@ -267,9 +267,9 @@ import {
                 oData = oData.res;
 
                 for (const oBirdData of oData) {
-                  if (oBirdData.time !== undefined) {
-                    const oBird = new Bird(parseFloat(oBirdData.alt), parseFloat(oBirdData.lng), parseFloat(oBirdData.lat), oBirdData.time);
-
+                  if (oBirdData.minute !== undefined) {
+                    // tslint:disable-next-line: max-line-length
+                    const oBird = new Bird(parseFloat(oBirdData.alt), parseFloat(oBirdData.lng), parseFloat(oBirdData.lat), oBirdData.minute);
                     for (const oGeoRef of AppModule.GEOREF) {
                       // tslint:disable-next-line: max-line-length
                       if (oBird.dLat >= oGeoRef.iLatStart && oBird.dLat <= oGeoRef.iLatEnd && oBird.dLng >= oGeoRef.iLngStart && oBird.dLng <= oGeoRef.iLngEnd) {
@@ -295,7 +295,6 @@ import {
 
                   }
                 }
-
               }
 
               ,
@@ -354,6 +353,7 @@ import {
 
     AppModule.oCrossSectionModal = oInstancesModals[0];
     AppModule.oLoadingModal = oInstancesModals[1];
+    AppModule.oThreeDModal = oInstancesModals[2];
   }
 
   /**
@@ -365,22 +365,22 @@ import {
   }
 
   set3DView(): void {
-    this.show3dViewer();
+    AppModule.oThreeDModal.open();
+    ThreeDMapController.loadMap();
+   // this.show3dViewer();
   }
 
   async show3dViewer(): Promise < void > {
     AppModule.oLoadingModal.open();
     if (!this.is3D) {
       TwoDMapController.disableHeightLayers();
-      Promise.all([
-        ThreeDMapController.loadMap()
-      ]).then(() => {
+        ThreeDMapController.loadMap();
         document.getElementById('ThreeDMap').style.visibility = 'visible';
         document.getElementById('TwoDMap').style.visibility = 'hidden';
         document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
         this.is3D = true;
         AppModule.oLoadingModal.close();
-      });
+
 
     } else {
       ThreeDMapController.disableHeightLayers();

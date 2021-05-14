@@ -21,13 +21,6 @@ export class ThreeDMapController {
 
   static async initializeMap(): Promise < void > {
 
-    Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
-
-
-    this.oMap = new Map({
-      basemap: 'dark-gray-vector' // Basemap layer service
-    });
-
   }
 
   static async loadMap(): Promise < void > {
@@ -35,6 +28,13 @@ export class ThreeDMapController {
     return new Promise < void > ((resolve, reject) => {
 
       try {
+
+        Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
+
+
+        this.oMap = new Map({
+          basemap: 'dark-gray-vector' // Basemap layer service
+        });
 
         let oCurrentGeoRef;
         let sCurrentGeoRef;
@@ -88,7 +88,7 @@ export class ThreeDMapController {
 
         }
 
-        for (let iMinute = 0; iMinute < 60; iMinute++) {
+        for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
           const oGraphicLayer = new GraphicsLayer();
           for (const oBird of AppModule.aBirds) {
             if (oBird.getMinutes() === iMinute) {
@@ -167,9 +167,6 @@ export class ThreeDMapController {
           }
         });
 
-        //TODO remove after testing
-        this.setHeightLayer(5);
-
         resolve();
 
       } catch (e) {
@@ -197,12 +194,12 @@ export class ThreeDMapController {
     // interval based on timelapse ms
     this.timeLapseInterval = setInterval(() => {
       this.setTimeLayer(this._currentMinute);
-      // repeat if minutes = 59
-      if (this._currentMinute === 59) {
+      // repeat if minutes =
+      if (this._currentMinute === 55) {
         this._currentMinute = 0;
         this.removeAllTimeLayers();
       } else {
-        this._currentMinute++;
+        this._currentMinute = this._currentMinute + 5;
       }
 
       document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
@@ -217,7 +214,7 @@ export class ThreeDMapController {
 
   static removeAllTimeLayers(): void {
 
-    for (let iMinute = 0; iMinute <= 59; iMinute++) {
+    for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
       const oLayer = this.oTimeLayer[iMinute];
       if (this.oMap.layers.includes(oLayer)) {
         this.oMap.remove(oLayer);

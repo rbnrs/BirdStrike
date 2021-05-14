@@ -52,26 +52,10 @@ export class TwoDMapController {
           zoom: 6
         });
 
-        this._SCREENSHOT_MAP = new Map({
-          accessToken: this._ACCESS_TOKEN,
-          container: 'ScreenshotMap',
-          style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
-          center: [10.447683, 51.163361],
-          minZoom: 5,
-          zoom: 6
-        });
-
         this._MAP.dragRotate.disable();
 
         this._MAP.once('load', () => {
           this.mapOnLoaded();
-        });
-
-        this._SCREENSHOT_MAP.on('sourcedata', () => {
-          if(this.bSnapShot){
-            console.log(this._SCREENSHOT_MAP.getCanvas().toDataURL('image/png'));
-          }
-
         });
 
         this._MAP.on('zoom', () => {
@@ -134,13 +118,13 @@ export class TwoDMapController {
     const fCurrentZoom = this._MAP.getZoom();
     // Zoom In
     if (fCurrentZoom > 7.5) {
-      this.changePointRadiusOnLayers('minutes', 3);
-      this.changePointRadiusOnLayers('kft', 3);
+      this.changePointRadiusOnLayers('minutes', 2);
+      this.changePointRadiusOnLayers('kft', 2);
 
     } else if (fCurrentZoom > 5.5 && fCurrentZoom < 7.5) {
 
-      this.changePointRadiusOnLayers('minutes', 2);
-      this.changePointRadiusOnLayers('kft', 2);
+      this.changePointRadiusOnLayers('minutes', 1);
+      this.changePointRadiusOnLayers('kft', 1);
 
     } else if (fCurrentZoom < 5.5) {
       this.changePointRadiusOnLayers('minutes', 1);
@@ -206,25 +190,18 @@ export class TwoDMapController {
     // interval based on timelapse ms
     this.timeLapseInterval = setInterval(() => {
       for (let iColor = 1; iColor <= 10; iColor++) {
-        const iLastMinute = this._currentMinute - 1 === -1 ? 59 : this._currentMinute - 1;
-        const layerIdCurrent = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
-        const layerIdLast =  'minutes' + iLastMinute + Colors.getColorByLevel(iColor);
-
-        if (this._MAP.getLayer(layerIdLast)) {
-          this._MAP.setLayoutProperty(layerIdLast, 'visibility', 'none');
-        }
-
-        if (this._MAP.getLayer(layerIdCurrent)) {
-          this._MAP.setLayoutProperty(layerIdCurrent, 'visibility', 'visible');
+        const layerId = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
+        if (this._MAP.getLayer(layerId)) {
+          this._MAP.setLayoutProperty(layerId, 'visibility', 'visible');
         }
 
       }
       // repeat if minutes = 59
-      if (this._currentMinute === 59) {
+      if (this._currentMinute === 55) {
         this._currentMinute = 0;
         this.noneVisibleLayers('minutes');
       } else {
-        this._currentMinute++;
+        this._currentMinute = this._currentMinute + 5;
       }
 
       document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
@@ -292,7 +269,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 3000) {
+    } else if (dAlt < 2000) {
       AppModule.aGeoArray.aGeoArray2.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -305,7 +282,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 5000) {
+    } else if (dAlt < 3000) {
       AppModule.aGeoArray.aGeoArray3.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -317,7 +294,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 10000) {
+    } else if (dAlt < 4000) {
       AppModule.aGeoArray.aGeoArray4.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -329,7 +306,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 15000) {
+    } else if (dAlt < 5000) {
       AppModule.aGeoArray.aGeoArray5.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -341,7 +318,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 20000) {
+    } else if (dAlt < 6000) {
       AppModule.aGeoArray.aGeoArray6.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -353,7 +330,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 25000) {
+    } else if (dAlt < 7000) {
       AppModule.aGeoArray.aGeoArray7.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -365,7 +342,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 30000) {
+    } else if (dAlt < 8000) {
       AppModule.aGeoArray.aGeoArray8.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -377,7 +354,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt < 35000) {
+    } else if (dAlt < 10000) {
       AppModule.aGeoArray.aGeoArray9.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -389,7 +366,7 @@ export class TwoDMapController {
           coordinates: [oBird.dLng, oBird.dLat]
         },
       });
-    } else if (dAlt > 35000) {
+    } else if (dAlt >= 10000) {
       AppModule.aGeoArray.aGeoArray10.push({
         // feature for Mapbox DC
         type: 'Feature',
@@ -431,6 +408,7 @@ export class TwoDMapController {
     if (AppModule.aTimeArray[iMinutes][sColor] === undefined) {
       AppModule.aTimeArray[iMinutes][sColor] = [];
     }
+
 
     AppModule.aTimeArray[iMinutes][sColor].push({
       type: 'Feature',
@@ -578,7 +556,7 @@ export class TwoDMapController {
    */
   static async addTimeLayerToMap(): Promise < void > {
 
-    for (let iMinute = 1; iMinute < 60; iMinute++) {
+    for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
       for (let iColor = 1; iColor <= 10; iColor++) {
         if (AppModule.aTimeArray[iMinute] !== undefined && AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
           AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
@@ -606,7 +584,7 @@ export class TwoDMapController {
             },
             source: layerId,
             paint: {
-              'circle-radius': 2,
+              'circle-radius': 1,
               'circle-color': Colors.getColorByLevel(iColor)
             },
           });
@@ -669,7 +647,7 @@ export class TwoDMapController {
       },
       source: 'kft' + iHeight,
       paint: {
-        'circle-radius': 2,
+        'circle-radius': 1,
         'circle-color': Colors.getColorByLevel(iHeight)
       },
     });

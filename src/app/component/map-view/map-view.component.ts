@@ -334,9 +334,8 @@ import {
 
     ;
 
-    AppModule.aTimeArray = {}
-
-    ;
+    AppModule.aTimeArrayGeoJSON = {};
+    AppModule.aTimeArrayBirds = {};
     TwoDMapController.iHighestBird = 0;
     TwoDMapController.iBirdStrikeCount = 0;
   }
@@ -361,21 +360,14 @@ import {
   }
 
   set3DView(): void {
-    //AppModule.oThreeDModal.open();
-    //ThreeDMapController.loadMap();
-    AppModule.startPerformanceTesting();
-    AppModule.printCurrentTimestamp("Open LoadingDialog");
     AppModule.oLoadingModal.open();
-    AppModule.printCurrentTimestamp("Run show3dViewer");
     this.show3dViewer();
   }
 
   show3dViewer(): void{
     if (!this.is3D) {
       TwoDMapController.disableHeightLayers();
-      AppModule.printCurrentTimestamp("Disable Layers");
       ThreeDMapController.loadMap();
-      AppModule.printCurrentTimestamp("Load 3D Viewer");
       document.getElementById('ThreeDMap').style.visibility = 'visible';
       document.getElementById('TwoDMap').style.visibility = 'hidden';
       document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
@@ -389,8 +381,6 @@ import {
       this.is3D = false;
       AppModule.oLoadingModal.close();
     }
-
-    AppModule.printCurrentTimestamp("End");
 
   }
 

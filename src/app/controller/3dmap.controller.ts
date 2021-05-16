@@ -15,8 +15,10 @@ export class ThreeDMapController {
   static oTimeLayer = {};
 
   static oMap: Map;
+  // tslint:disable-next-line: variable-name
   static _currentMinute: any;
   static timeLapseInterval: any;
+  // tslint:disable-next-line: variable-name
   static _oSceneView: SceneView;
 
   static async initializeMap(): Promise < void > {
@@ -25,7 +27,6 @@ export class ThreeDMapController {
 
   static async loadMap(): Promise < void > {
 
-    AppModule.printCurrentTimestamp("Start 3D Loading");
     try {
 
       Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
@@ -35,7 +36,6 @@ export class ThreeDMapController {
         basemap: 'dark-gray-vector' // Basemap layer service
       });
 
-      AppModule.printCurrentTimestamp("Create Map with API Key");
       let oCurrentGeoRef;
       let sCurrentGeoRef;
 
@@ -47,8 +47,6 @@ export class ThreeDMapController {
           break;
         }
       }
-
-      AppModule.printCurrentTimestamp("Get current GEOREF");
 
       for (let i = 1; i <= 10; i++) {
         const oGraphicLayer = new GraphicsLayer();
@@ -87,17 +85,14 @@ export class ThreeDMapController {
         }
 
         this.oHeightLayer[i] = oGraphicLayer;
-
+        oGraphicLayer.visible = false;
+        oGraphicLayer.id = '3dHeight' + i + sCurrentGeoRef;
+        this.oMap.add(oGraphicLayer);
       }
-
-      AppModule.printCurrentTimestamp("Create Height Layers");
 
       for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
         this.createTimeLayer(iMinute);
       }
-
-      AppModule.printCurrentTimestamp("Create Minute Layers");
-
 
       const clippingMin = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngStart, oCurrentGeoRef.iLatStart);
       const clippingMax = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngEnd, oCurrentGeoRef.iLatEnd);
@@ -149,8 +144,6 @@ export class ThreeDMapController {
         }
       });
 
-      AppModule.printCurrentTimestamp("Create Scene View");
-
     } catch (e) {
       console.log(e);
     }
@@ -158,75 +151,45 @@ export class ThreeDMapController {
 
   static async createTimeLayer(iMinute: number): Promise < void > {
     const oGraphicLayer = new GraphicsLayer();
-    AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " started");
-
-    const oBirdsCollection = AppModule.aTimeArray[iMinute];
+    const oBirdsCollection = AppModule.aTimeArrayBirds[iMinute];
+    let iCounter = 0 ;
     for (let i = 1; i <= 10; i++) {
       const sColor = Colors.getColorByLevel(i);
-      AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " Color " + sColor + " started");
       const aBirds = oBirdsCollection[sColor];
       if (aBirds) {
         for (const oBird of aBirds) {
-          const point = { // Create a point
-            type: 'point',
-            longitude: oBird.dLng,
-            latitude: oBird.dLat,
-            z: oBird.dAlt
-          };
+          if (oBird.sGeoRef === AppModule.sCurrentGeoRef) {
+            const point = { // Create a point
+              type: 'point',
+              longitude: oBird.dLng,
+              latitude: oBird.dLat,
+              z: oBird.dAlt
+            };
 
-          const simpleMarkerSymbol = {
-            type: 'simple-marker',
-            color: sColor,
-            size: 2,
-            outline: {
+            const simpleMarkerSymbol = {
+              type: 'simple-marker',
               color: sColor,
-              width: 1
-            }
-          };
+              size: 2,
+              outline: {
+                color: sColor,
+                width: 1
+              }
+            };
 
-          const pointGraphic = new Graphic({
-            geometry: point as any,
-            symbol: simpleMarkerSymbol
-          });
-
-          oGraphicLayer.add(pointGraphic);
+            const pointGraphic = new Graphic({
+              geometry: point as any,
+              symbol: simpleMarkerSymbol,
+            });
+            oGraphicLayer.add(pointGraphic);
+            iCounter++;
+          }
         }
       }
-      AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " Color " + sColor + " end");
     }
-
-    /*
-    for (const oBirdsCollection of AppModule.aTimeArray[iMinute]) {
-      debugger;
-      if (oBird.getMinutes() === iMinute) {
-        const point = { // Create a point
-          type: 'point',
-          longitude: oBird.dLng,
-          latitude: oBird.dLat,
-          z: oBird.dAlt
-        };
-
-        const simpleMarkerSymbol = {
-          type: 'simple-marker',
-          color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()),
-          size: 2,
-          outline: {
-            color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()), // White
-            width: 1
-          }
-        };
-
-        const pointGraphic = new Graphic({
-          geometry: point as any,
-          symbol: simpleMarkerSymbol
-        });
-
-        oGraphicLayer.add(pointGraphic);
-      }
-
-    }
-    */
-    AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " finished");
+    console.log("Layer for Minute " + iMinute + " with " + iCounter + " created")
+    oGraphicLayer.id = '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
+    oGraphicLayer.visible = false;
+    this.oMap.add(oGraphicLayer);
     this.oTimeLayer[iMinute] = oGraphicLayer;
   }
 
@@ -260,16 +223,21 @@ export class ThreeDMapController {
   }
 
   static async setTimeLayer(iMinute: number): Promise < void > {
-    const oLayer = this.oTimeLayer[iMinute];
-    this.oMap.add(oLayer);
+    const oLayer = this.oMap.layers.find((oLayer) => {
+      return oLayer.id === '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
+    });
+
+    if(oLayer){
+      oLayer.visible = true;
+    }
   }
 
   static removeAllTimeLayers(): void {
 
     for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
-      const oLayer = this.oTimeLayer[iMinute];
-      if (this.oMap.layers.includes(oLayer)) {
-        this.oMap.remove(oLayer);
+      const oLayer = this.oMap.findLayerById('3dMinute' + iMinute + AppModule.sCurrentGeoRef);
+      if(oLayer){
+        oLayer.visible = false;
       }
     }
     document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
@@ -290,11 +258,16 @@ export class ThreeDMapController {
   }
 
   static async setHeightLayer(iHeightLevel: number): Promise < void > {
-    const oLayer = this.oHeightLayer[iHeightLevel];
-    if (this.oMap.layers.includes(oLayer)) {
-      this.oMap.remove(oLayer);
+
+    // tslint:disable-next-line: no-shadowed-variable
+    const oLayer = this.oMap.layers.find((oLayer) => {
+      return oLayer.id === '3dHeight' + iHeightLevel + AppModule.sCurrentGeoRef;
+    });
+
+    if (oLayer.visible) {
+      oLayer.visible = false;
     } else {
-      this.oMap.add(oLayer);
+      oLayer.visible = true;
     }
   }
 

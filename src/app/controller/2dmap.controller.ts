@@ -399,24 +399,33 @@ export class TwoDMapController {
    */
   static setMarkerBasedOnTime(iMinutes: number, oBird: Bird): void {
 
-    if (AppModule.aTimeArray[iMinutes] === undefined) {
-      AppModule.aTimeArray[iMinutes] = [];
+    if (AppModule.aTimeArrayGeoJSON[iMinutes] === undefined) {
+      AppModule.aTimeArrayGeoJSON[iMinutes] = [];
+    }
+
+    if (AppModule.aTimeArrayBirds[iMinutes] === undefined) {
+      AppModule.aTimeArrayBirds[iMinutes] = [];
     }
 
     const sColor = Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight());
 
-    if (AppModule.aTimeArray[iMinutes][sColor] === undefined) {
-      AppModule.aTimeArray[iMinutes][sColor] = [];
+    if (AppModule.aTimeArrayGeoJSON[iMinutes][sColor] === undefined) {
+      AppModule.aTimeArrayGeoJSON[iMinutes][sColor] = [];
     }
 
+    if (AppModule.aTimeArrayBirds[iMinutes][sColor] === undefined) {
+      AppModule.aTimeArrayBirds[iMinutes][sColor] = [];
+    }
 
-    AppModule.aTimeArray[iMinutes][sColor].push({
+    AppModule.aTimeArrayGeoJSON[iMinutes][sColor].push({
       type: 'Feature',
       geometry: {
         type: 'Point',
         coordinates: [oBird.dLng, oBird.dLat]
       },
     });
+
+    AppModule.aTimeArrayBirds[iMinutes][sColor].push(oBird);
   }
 
   /**
@@ -558,8 +567,8 @@ export class TwoDMapController {
 
     for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
       for (let iColor = 1; iColor <= 10; iColor++) {
-        if (AppModule.aTimeArray[iMinute] !== undefined && AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
-          AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
+        if (AppModule.aTimeArrayGeoJSON[iMinute] !== undefined && AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
+          AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
 
           const layerId = 'minutes' + iMinute + Colors.getColorByLevel(iColor);
           if (this._MAP.getLayer(layerId)) {
@@ -572,7 +581,7 @@ export class TwoDMapController {
             type: 'geojson',
             data: {
               type: 'FeatureCollection',
-              features: AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)]
+              features: AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)]
             }
           });
 
@@ -854,8 +863,8 @@ export class TwoDMapController {
     this.bSnapShot = true;
 
     for (let iColor = 1; iColor <= 10; iColor++) {
-      if (AppModule.aTimeArray[iMinute] !== undefined && AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
-        AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
+      if (AppModule.aTimeArrayGeoJSON[iMinute] !== undefined && AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
+        AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
 
         const layerId = 'screenshot' + iMinute + Colors.getColorByLevel(iColor);
         if (this._SCREENSHOT_MAP.getLayer(layerId)) {
@@ -868,7 +877,7 @@ export class TwoDMapController {
           type: 'geojson',
           data: {
             type: 'FeatureCollection',
-            features: AppModule.aTimeArray[iMinute][Colors.getColorByLevel(iColor)]
+            features: AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)]
           }
         });
 

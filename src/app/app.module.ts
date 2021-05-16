@@ -26,10 +26,12 @@ const aRoutes: Routes = [
   bootstrap: [AppComponent]
 })
 export class AppModule{
+
   static bStarted = false;
   static GEOREF: Georef[] = [];
   static oLoadingModal: any;
-  static aTimeArray: {};
+  static aTimeArrayGeoJSON: {};
+  static aTimeArrayBirds: {};
   static aGeoArray: any;
   static oLatLng: any;
   static oCrossSectionModal: any;

@@ -48,7 +48,6 @@ import {
   sLocalTime = '';
   is3D = false;
 
-
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
@@ -209,9 +208,6 @@ import {
     Promise.all(aPromises).then(() => {
         TwoDMapController.setGeoJsonMarkers();
         TwoDMapController.addTimeLayerToMap();
-        if (this.is3D) {
-          ThreeDMapController.loadMap();
-        }
         const dCurrentDate = new Date(Date.now());
         this.sLocalDate = dCurrentDate.toLocaleDateString();
         const aTimes = dCurrentDate.toLocaleTimeString().split(':', 2);
@@ -365,23 +361,26 @@ import {
   }
 
   set3DView(): void {
-    AppModule.oThreeDModal.open();
-    ThreeDMapController.loadMap();
-   // this.show3dViewer();
+    //AppModule.oThreeDModal.open();
+    //ThreeDMapController.loadMap();
+    AppModule.startPerformanceTesting();
+    AppModule.printCurrentTimestamp("Open LoadingDialog");
+    AppModule.oLoadingModal.open();
+    AppModule.printCurrentTimestamp("Run show3dViewer");
+    this.show3dViewer();
   }
 
-  async show3dViewer(): Promise < void > {
-    AppModule.oLoadingModal.open();
+  show3dViewer(): void{
     if (!this.is3D) {
       TwoDMapController.disableHeightLayers();
-        ThreeDMapController.loadMap();
-        document.getElementById('ThreeDMap').style.visibility = 'visible';
-        document.getElementById('TwoDMap').style.visibility = 'hidden';
-        document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
-        this.is3D = true;
-        AppModule.oLoadingModal.close();
-
-
+      AppModule.printCurrentTimestamp("Disable Layers");
+      ThreeDMapController.loadMap();
+      AppModule.printCurrentTimestamp("Load 3D Viewer");
+      document.getElementById('ThreeDMap').style.visibility = 'visible';
+      document.getElementById('TwoDMap').style.visibility = 'hidden';
+      document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
+      this.is3D = true;
+      AppModule.oLoadingModal.close();
     } else {
       ThreeDMapController.disableHeightLayers();
       document.getElementById('ThreeDMap').style.visibility = 'hidden';
@@ -390,6 +389,8 @@ import {
       this.is3D = false;
       AppModule.oLoadingModal.close();
     }
+
+    AppModule.printCurrentTimestamp("End");
 
   }
 

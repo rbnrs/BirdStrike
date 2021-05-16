@@ -36,5 +36,15 @@ export class AppModule{
   static sCurrentGeoRef: string;
   static aBirds: Bird[] = [];
   static oThreeDModal: any;
+  static iStartTime: number;
+
+
+  static startPerformanceTesting(): void{
+    this.iStartTime = Date.now();
+  }
+
+  static printCurrentTimestamp(text: string): void{
+    console.log(text + " " + (Date.now() - this.iStartTime) + " ms  ");
+  }
 
 }

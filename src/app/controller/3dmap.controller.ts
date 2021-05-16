@@ -25,73 +25,39 @@ export class ThreeDMapController {
 
   static async loadMap(): Promise < void > {
 
-    return new Promise < void > ((resolve, reject) => {
+    AppModule.printCurrentTimestamp("Start 3D Loading");
+    try {
 
-      try {
-
-        Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
-
-
-        this.oMap = new Map({
-          basemap: 'dark-gray-vector' // Basemap layer service
-        });
-
-        let oCurrentGeoRef;
-        let sCurrentGeoRef;
+      Config.apiKey = 'AAPKa5b7055c839c4368af5cd1247b271199UvMqRYkpezzDZMNCRPjqaqyn9qEFzVgTDy9jqsqBl-SZT6YaYu7kNsBenpVH9tuT';
 
 
-        for (const oGeoRef of AppModule.GEOREF) {
-          if (AppModule.sCurrentGeoRef === oGeoRef.sZone + '' + oGeoRef.sLetter) {
-            oCurrentGeoRef = oGeoRef;
-            sCurrentGeoRef = oCurrentGeoRef.sZone + '' + oCurrentGeoRef.sLetter;
-            break;
-          }
+      this.oMap = new Map({
+        basemap: 'dark-gray-vector' // Basemap layer service
+      });
+
+      AppModule.printCurrentTimestamp("Create Map with API Key");
+      let oCurrentGeoRef;
+      let sCurrentGeoRef;
+
+
+      for (const oGeoRef of AppModule.GEOREF) {
+        if (AppModule.sCurrentGeoRef === oGeoRef.sZone + '' + oGeoRef.sLetter) {
+          oCurrentGeoRef = oGeoRef;
+          sCurrentGeoRef = oCurrentGeoRef.sZone + '' + oCurrentGeoRef.sLetter;
+          break;
         }
+      }
 
-        for (let i = 1; i <= 10; i++) {
-          const oGraphicLayer = new GraphicsLayer();
-          for (const oBird of AppModule.aBirds) {
+      AppModule.printCurrentTimestamp("Get current GEOREF");
 
-            if (oBird.sGeoRef === AppModule.sCurrentGeoRef) {
+      for (let i = 1; i <= 10; i++) {
+        const oGraphicLayer = new GraphicsLayer();
+        for (const oBird of AppModule.aBirds) {
 
-              if (oBird.getHeightLevelBasedOnHeight() === i) {
+          if (oBird.sGeoRef === AppModule.sCurrentGeoRef) {
 
-                const point = { // Create a point
-                  type: 'point',
-                  longitude: oBird.dLng,
-                  latitude: oBird.dLat,
-                  z: oBird.dAlt
-                };
+            if (oBird.getHeightLevelBasedOnHeight() === i) {
 
-                const simpleMarkerSymbol = {
-                  type: 'simple-marker',
-                  color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()),
-                  size: 2,
-                  outline: {
-                    color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()), // White
-                    width: 1
-                  }
-                };
-
-                const pointGraphic = new Graphic({
-                  geometry: point as any,
-                  symbol: simpleMarkerSymbol
-                });
-
-                oGraphicLayer.add(pointGraphic);
-              }
-
-            }
-          }
-
-          this.oHeightLayer[i] = oGraphicLayer;
-
-        }
-
-        for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
-          const oGraphicLayer = new GraphicsLayer();
-          for (const oBird of AppModule.aBirds) {
-            if (oBird.getMinutes() === iMinute) {
               const point = { // Create a point
                 type: 'point',
                 longitude: oBird.dLng,
@@ -116,66 +82,152 @@ export class ThreeDMapController {
 
               oGraphicLayer.add(pointGraphic);
             }
+
           }
-          this.oTimeLayer[iMinute] = oGraphicLayer;
         }
 
+        this.oHeightLayer[i] = oGraphicLayer;
 
-        const clippingMin = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngStart, oCurrentGeoRef.iLatStart);
-        const clippingMax = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngEnd, oCurrentGeoRef.iLatEnd);
+      }
 
-        const mapExtent = {
-          xmin: clippingMin[0],
-          ymin: clippingMin[1],
-          xmax: clippingMax[0],
-          ymax: clippingMax[1],
-          spatialReference: { // autocasts as new SpatialReference()
-            wkid: 3857
+      AppModule.printCurrentTimestamp("Create Height Layers");
+
+      for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
+        this.createTimeLayer(iMinute);
+      }
+
+      AppModule.printCurrentTimestamp("Create Minute Layers");
+
+
+      const clippingMin = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngStart, oCurrentGeoRef.iLatStart);
+      const clippingMax = WebMercatorUtils.lngLatToXY(oCurrentGeoRef.iLngEnd, oCurrentGeoRef.iLatEnd);
+
+      const mapExtent = {
+        xmin: clippingMin[0],
+        ymin: clippingMin[1],
+        xmax: clippingMax[0],
+        ymax: clippingMax[1],
+        spatialReference: { // autocasts as new SpatialReference()
+          wkid: 3857
+        }
+      };
+
+      const aCenter = [
+        (oCurrentGeoRef.iLngStart + oCurrentGeoRef.iLngEnd) / 2,
+        (oCurrentGeoRef.iLatStart + oCurrentGeoRef.iLatEnd) / 2
+      ];
+
+      this._oSceneView = new SceneView({
+        container: 'ThreeDMap',
+        map: this.oMap,
+        // Indicates to create a local scene
+        viewingMode: 'local',
+        qualityProfile: 'low',
+        // Use the exent defined in clippingArea to define the bounds of the scene
+        clippingArea: mapExtent,
+        extent: mapExtent,
+        ui: {
+          components: ['attribution']
+        },
+        zoom: 3,
+        center: aCenter,
+        // Turns off atmosphere and stars settings
+        environment: {
+          atmosphere: null,
+          starsEnabled: false,
+          background: {
+            type: 'color', // autocasts as new ColorBackground()
+            color: [30, 29, 30, 255]
+          },
+        },
+        camera: {
+          position: {
+            longitude: aCenter[0],
+            latitude: aCenter[1],
+            z: 500000
+          },
+        }
+      });
+
+      AppModule.printCurrentTimestamp("Create Scene View");
+
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  static async createTimeLayer(iMinute: number): Promise < void > {
+    const oGraphicLayer = new GraphicsLayer();
+    AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " started");
+
+    const oBirdsCollection = AppModule.aTimeArray[iMinute];
+    for (let i = 1; i <= 10; i++) {
+      const sColor = Colors.getColorByLevel(i);
+      AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " Color " + sColor + " started");
+      const aBirds = oBirdsCollection[sColor];
+      if (aBirds) {
+        for (const oBird of aBirds) {
+          const point = { // Create a point
+            type: 'point',
+            longitude: oBird.dLng,
+            latitude: oBird.dLat,
+            z: oBird.dAlt
+          };
+
+          const simpleMarkerSymbol = {
+            type: 'simple-marker',
+            color: sColor,
+            size: 2,
+            outline: {
+              color: sColor,
+              width: 1
+            }
+          };
+
+          const pointGraphic = new Graphic({
+            geometry: point as any,
+            symbol: simpleMarkerSymbol
+          });
+
+          oGraphicLayer.add(pointGraphic);
+        }
+      }
+      AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " Color " + sColor + " end");
+    }
+
+    /*
+    for (const oBirdsCollection of AppModule.aTimeArray[iMinute]) {
+      debugger;
+      if (oBird.getMinutes() === iMinute) {
+        const point = { // Create a point
+          type: 'point',
+          longitude: oBird.dLng,
+          latitude: oBird.dLat,
+          z: oBird.dAlt
+        };
+
+        const simpleMarkerSymbol = {
+          type: 'simple-marker',
+          color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()),
+          size: 2,
+          outline: {
+            color: Colors.getColorByLevel(oBird.getHeightLevelBasedOnHeight()), // White
+            width: 1
           }
         };
 
-        const aCenter = [
-          (oCurrentGeoRef.iLngStart + oCurrentGeoRef.iLngEnd) / 2,
-          (oCurrentGeoRef.iLatStart + oCurrentGeoRef.iLatEnd) / 2
-        ];
-
-        this._oSceneView = new SceneView({
-          container: 'ThreeDMap',
-          map: this.oMap,
-          // Indicates to create a local scene
-          viewingMode: 'local',
-          qualityProfile: 'low',
-          // Use the exent defined in clippingArea to define the bounds of the scene
-          clippingArea: mapExtent,
-          extent: mapExtent,
-          ui: {
-            components: ['attribution']
-          },
-          zoom: 3,
-          center: aCenter,
-          // Turns off atmosphere and stars settings
-          environment: {
-            atmosphere: null,
-            starsEnabled: false
-          },
-          camera: {
-            position: {
-              longitude: aCenter[0],
-              latitude: aCenter[1],
-              z: 500000
-            },
-          }
+        const pointGraphic = new Graphic({
+          geometry: point as any,
+          symbol: simpleMarkerSymbol
         });
 
-        resolve();
-
-      } catch (e) {
-        console.log(e);
-        reject();
+        oGraphicLayer.add(pointGraphic);
       }
 
-    });
-
+    }
+    */
+    AppModule.printCurrentTimestamp("Time Layer Minute " + iMinute + " finished");
+    this.oTimeLayer[iMinute] = oGraphicLayer;
   }
 
 
@@ -249,7 +301,7 @@ export class ThreeDMapController {
   static async createScreenShot() {
 
     const oScreenShot = await this._oSceneView.takeScreenshot({
-      format: "jpg",
+      format: 'jpg',
       quality: 70
     });
   }

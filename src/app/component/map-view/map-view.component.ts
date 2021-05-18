@@ -27,8 +27,8 @@ import {
 } from 'src/app/controller/2dmap.controller';
 
 import {
-  CrossSectionController
-} from 'src/app/controller/crossection.controller';
+  StatisticsController
+} from 'src/app/controller/statistics.controller';
 
 import {
   ThreeDMapController
@@ -73,21 +73,14 @@ import {
 
     document.addEventListener('DOMContentLoaded', () => {
         const elemsdrop = document.querySelectorAll('.dropdown-trigger');
-
-        const instancesdrop = M.Dropdown.init(elemsdrop, {}
-
-        );
-
+        M.Dropdown.init(elemsdrop, {});
         const elems = document.querySelectorAll('input[type=range]');
         M.Range.init(elems);
-
         const elemsmodal = document.querySelectorAll('.modal');
-
-        const instancesmodal = M.Modal.init(elemsmodal, {}
-
-        );
-
+        const instancesmodal = M.Modal.init(elemsmodal, {});
         this.setModalInstances(instancesmodal);
+        const elemstabs = document.querySelectorAll('.tabs');
+        M.Tabs.init(elemstabs, {});
       }
 
     );
@@ -100,9 +93,7 @@ import {
         TwoDMapController.removeLayers('kft');
         TwoDMapController.removeLayers('minutes');
         this._readMapData();
-      }
-
-      , 1000 * 60 * 5);
+      }, 1000 * 60 * 5);
 
   }
 
@@ -208,6 +199,7 @@ import {
     Promise.all(aPromises).then(() => {
         TwoDMapController.setGeoJsonMarkers();
         TwoDMapController.addTimeLayerToMap();
+        TwoDMapController.createGeoRefCounterCircles();
         const dCurrentDate = new Date(Date.now());
         this.sLocalDate = dCurrentDate.toLocaleDateString();
         const aTimes = dCurrentDate.toLocaleTimeString().split(':', 2);
@@ -266,29 +258,21 @@ import {
                   if (oBirdData.minute !== undefined) {
                     // tslint:disable-next-line: max-line-length
                     const oBird = new Bird(parseFloat(oBirdData.alt), parseFloat(oBirdData.lng), parseFloat(oBirdData.lat), oBirdData.minute);
-                    for (const oGeoRef of AppModule.GEOREF) {
+                    // tslint:disable-next-line: prefer-for-of
+                    for (let iPos = 0; iPos < AppModule.GEOREF.length; iPos++) {
+                      const oGeoRef = AppModule.GEOREF[iPos];
                       // tslint:disable-next-line: max-line-length
                       if (oBird.dLat >= oGeoRef.iLatStart && oBird.dLat <= oGeoRef.iLatEnd && oBird.dLng >= oGeoRef.iLngStart && oBird.dLng <= oGeoRef.iLngEnd) {
                         oBird.sGeoRef = oGeoRef.sZone + '' + oGeoRef.sLetter;
+                        AppModule.GEOREF[iPos].iCounter = oGeoRef.iCounter + 1;
                         break;
                       }
                     }
 
                     AppModule.aBirds.push(oBird);
-                    const oMap = TwoDMapController.getMapObject();
                     TwoDMapController.setMarkerBasedOnTime(oBird.getMinutes(), oBird);
                     TwoDMapController.setMarkerBasedOnHeight(oBird.dAlt, oBird);
                     resolve();
-                    /*
-                    oMap.on('styledata', () => {
-
-
-                      }
-
-                    );
-
-                    */
-
                   }
                 }
               }
@@ -315,6 +299,14 @@ import {
   }
 
   /**
+   * Handler Shows GeoRef Counter Circles
+   * @param oEvent clickevent
+   */
+   setGeoRefCounter(oEvent: any): void {
+     TwoDMapController.setGeoRefCounter(oEvent);
+   }
+
+  /**
    * Reset Map Data
    */
   resetMapData(): void {
@@ -330,9 +322,20 @@ import {
       aGeoArray8: [],
       aGeoArray9: [],
       aGeoArray10: [],
-    }
+    };
 
-    ;
+    AppModule.aHeightArrayBirds = {
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: [],
+      7: [],
+      8: [],
+      9: [],
+      10: [],
+    };
 
     AppModule.aTimeArrayGeoJSON = {};
     AppModule.aTimeArrayBirds = {};
@@ -346,33 +349,38 @@ import {
    */
   setModalInstances(oInstancesModals): void {
 
-    AppModule.oCrossSectionModal = oInstancesModals[0];
+    AppModule.oDetailDialog = oInstancesModals[0];
     AppModule.oLoadingModal = oInstancesModals[1];
-    AppModule.oThreeDModal = oInstancesModals[2];
+    AppModule.oSettingsModal = oInstancesModals[2];
+  }
+
+  showHeightLevel(): void{
+
   }
 
   /**
    * open Cross-Section Dialog
    */
-  openCrossSectionDialog(): void {
-    CrossSectionController.setDataToCrossSectionDialog();
-    AppModule.oCrossSectionModal.open();
+  openDetailDialog(): void {
+    StatisticsController.setDataToCrossSectionChart();
+    StatisticsController.setDataToBarChart();
+    StatisticsController.setOthersData(this.sLocalDate, this.sLocalTime);
+    AppModule.oDetailDialog.open();
   }
 
   set3DView(): void {
-    AppModule.oLoadingModal.open();
     this.show3dViewer();
   }
 
   show3dViewer(): void{
     if (!this.is3D) {
+      AppModule.oLoadingModal.open();
       TwoDMapController.disableHeightLayers();
       ThreeDMapController.loadMap();
       document.getElementById('ThreeDMap').style.visibility = 'visible';
       document.getElementById('TwoDMap').style.visibility = 'hidden';
       document.getElementById('threedviewbtn').innerHTML = '2D Darstellung';
       this.is3D = true;
-      AppModule.oLoadingModal.close();
     } else {
       ThreeDMapController.disableHeightLayers();
       document.getElementById('ThreeDMap').style.visibility = 'hidden';
@@ -384,10 +392,7 @@ import {
 
   }
 
-  //TODO remove after testing
-  createScreenshot(): void {
-    //TwoDMapController.createTimeLayerScreenshot();
-    ThreeDMapController.createScreenShot();
+  showSettingsDialog(): void{
+    AppModule.oSettingsModal.open();
   }
-
 }

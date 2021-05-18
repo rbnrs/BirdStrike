@@ -14,6 +14,7 @@
 
 html {
     overflow: hidden !important;
+    background-color: #1f1e1e;
 }
 
 .box {
@@ -94,6 +95,10 @@ html {
     border-color: #3F9B93 !important;
 }
 
+.waves-effect.waves-green .waves-ripple {
+    background-color: #3F9B93 !important;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -101,7 +106,6 @@ html {
     right: 0;
     background-color: #fafafa;
     padding: 0;
-    padding-top: 50px !important;
     max-height: 90% !important;
     width: 55%;
     margin: auto;
@@ -140,9 +144,8 @@ html {
 
 .birdstrike-direction {
     color: #3F9B93;
-    text-align: end;
     font-size: 30px;
-    margin-top: 5px;
+    margin-left: 10px;
 }
 
 .height-legend {
@@ -249,8 +252,16 @@ html {
     border: 2px solid #42FF00;
 }
 
+.color-ft-0-1[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
+    border: 2px solid #42FF00;
+}
+
 .color-ft-1-2[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #A1FF0F;
+    border: 2px solid #A1FF0F;
+}
+
+.color-ft-1-2[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
     border: 2px solid #A1FF0F;
 }
 
@@ -259,8 +270,16 @@ html {
     border: 2px solid #D8FF00;
 }
 
+.color-ft-2-3[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
+    border: 2px solid #D8FF00;
+}
+
 .color-ft-3-4[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #EDFF00;
+    border: 2px solid #EDFF00;
+}
+
+.color-ft-3-4[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
     border: 2px solid #EDFF00;
 }
 
@@ -269,8 +288,16 @@ html {
     border: 2px solid #FFE207;
 }
 
+.color-ft-4-5[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
+    border: 2px solid #FFE207;
+}
+
 .color-ft-5-6[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #FFBF00;
+    border: 2px solid #FFBF00;
+}
+
+.color-ft-5-6[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
     border: 2px solid #FFBF00;
 }
 
@@ -279,8 +306,16 @@ html {
     border: 2px solid #FF8900;
 }
 
+.color-ft-6-7[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
+    border: 2px solid #FF8900;
+}
+
 .color-ft-7-8[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #FF3802;
+    border: 2px solid #FF3802;
+}
+
+.color-ft-7-8[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
     border: 2px solid #FF3802;
 }
 
@@ -289,8 +324,16 @@ html {
     border: 2px solid #FF003D;
 }
 
+.color-ft-8-9[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
+    border: 2px solid #FF003D;
+}
+
 .color-ft-9-10[type="checkbox"].filled-in:checked+span:not(.lever):after {
     background-color: #FF03B9;
+    border: 2px solid #FF03B9;
+}
+
+.color-ft-9-10[type="checkbox"].filled-in:not(:checked)+span:not(.lever):after {
     border: 2px solid #FF03B9;
 }
 
@@ -300,4 +343,27 @@ html {
 
 .esri-attribution {
     display: none !important;
+}
+
+.switch-text-statistics {
+    font-size: 15px;
+}
+
+.tabs .tab a {
+    color: grey !important;
+}
+
+.tabs .tab a:hover,
+.tabs .tab a.active {
+    background-color: transparent;
+    color: #3F9B93 !important;
+}
+
+.tabs .tab.disabled a,
+.tabs .tab.disabled a:hover {
+    color: rgba(102, 147, 153, 0.7);
+}
+
+.tabs .indicator {
+    background-color: #3F9B93 !important;
 }

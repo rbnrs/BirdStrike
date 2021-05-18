@@ -6,6 +6,7 @@ export class Georef {
   iLatEnd: number;
   sLetter: string;
   sZone: string;
+  iCounter: number;
 
 
   constructor(iLngStart: number, iLatStart: number, iLngEnd: number, iLatEnd: number, sLetter: string, sZone: string) {
@@ -16,6 +17,7 @@ export class Georef {
     this.iLatEnd = iLatEnd;
     this.sLetter = sLetter;
     this.sZone = sZone;
+    this.iCounter = 0;
 
   }
 

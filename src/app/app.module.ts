@@ -33,12 +33,14 @@ export class AppModule{
   static aTimeArrayGeoJSON: {};
   static aTimeArrayBirds: {};
   static aGeoArray: any;
+  static aHeightArrayBirds: {};
   static oLatLng: any;
   static oCrossSectionModal: any;
   static sCurrentGeoRef: string;
   static aBirds: Bird[] = [];
-  static oThreeDModal: any;
+  static oSettingsModal: any;
   static iStartTime: number;
+  static oDetailDialog: any;
 
 
   static startPerformanceTesting(): void{

@@ -24,7 +24,15 @@
                         "aot": true,
                         "assets": [
                             "src/assets/icon.ico",
-                            "src/assets/logo.jpg"
+                            "src/assets/logo.jpg",
+                            "src/assets/wind-n.jpg",
+                            "src/assets/wind-ne.jpg",
+                            "src/assets/wind-e.jpg",
+                            "src/assets/wind-es.jpg",
+                            "src/assets/wind-s.jpg",
+                            "src/assets/wind-sw.jpg",
+                            "src/assets/wind-w.jpg",
+                            "src/assets/wind-nw.jpg"
                         ],
                         "styles": [
                             "src/styles.css",

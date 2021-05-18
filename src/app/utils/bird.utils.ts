@@ -32,9 +32,9 @@ export class Bird {
   /**
    * returns minutes of bird time
    */
-  getMinutes(): number{
-   // return parseInt(this.sTime.split(':')[1], 10);
-   return this.iTime;
+  getMinutes(): number {
+    // return parseInt(this.sTime.split(':')[1], 10);
+    return this.iTime;
   }
 
   /**
@@ -54,15 +54,43 @@ export class Bird {
       return 5;
     } else if (this.dAlt < 6000) {
       return 6;
-    } else if (this.dAlt < 7000) {
-      return 7;
     } else if (this.dAlt < 8000) {
-      return 8;
+      return 7;
     } else if (this.dAlt < 10000) {
+      return 8;
+    } else if (this.dAlt < 12000) {
       return 9;
-    } else if (this.dAlt >= 10000) {
+    } else if (this.dAlt >= 12000) {
       return 10;
     }
+  }
+
+  // tslint:disable-next-line: member-ordering
+  static getHeightLevelStringByHeightLevel(iHeightLevel: number): string {
+
+    if (1 === iHeightLevel) {
+      return '< 1 kft';
+    } else if (2 === iHeightLevel) {
+      return '1 - 2 kft';
+    } else if (3 === iHeightLevel) {
+      return '2 - 3 kft';
+    } else if (4 === iHeightLevel) {
+      return '3 - 4 kft';
+    } else if (5 === iHeightLevel) {
+      return '4 - 5 kft';
+    } else if (6 === iHeightLevel) {
+      return '5 - 6 kft';
+    } else if (7 === iHeightLevel) {
+      return '6 - 8 kft';
+    } else if (8 === iHeightLevel) {
+      return '8 - 10 kft';
+    } else if (9 === iHeightLevel) {
+      return '10 - 12 kft';
+    } else if (10 === iHeightLevel) {
+      return '> 12 kft';
+    }
+
+    return 'ERROR';
   }
 
 }

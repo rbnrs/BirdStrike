@@ -144,6 +144,10 @@ export class ThreeDMapController {
         }
       });
 
+      this._oSceneView.on('layerview-create', () => {
+        AppModule.oLoadingModal.close();
+      });
+
     } catch (e) {
       console.log(e);
     }
@@ -186,7 +190,6 @@ export class ThreeDMapController {
         }
       }
     }
-    console.log("Layer for Minute " + iMinute + " with " + iCounter + " created")
     oGraphicLayer.id = '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
     oGraphicLayer.visible = false;
     this.oMap.add(oGraphicLayer);
@@ -260,7 +263,7 @@ export class ThreeDMapController {
   static async setHeightLayer(iHeightLevel: number): Promise < void > {
 
     // tslint:disable-next-line: no-shadowed-variable
-    const oLayer = this.oMap.layers.find((oLayer) => {
+    const oLayer = await this.oMap.layers.find((oLayer) => {
       return oLayer.id === '3dHeight' + iHeightLevel + AppModule.sCurrentGeoRef;
     });
 
@@ -269,14 +272,6 @@ export class ThreeDMapController {
     } else {
       oLayer.visible = true;
     }
-  }
-
-  static async createScreenShot() {
-
-    const oScreenShot = await this._oSceneView.takeScreenshot({
-      format: 'jpg',
-      quality: 70
-    });
   }
 
 }

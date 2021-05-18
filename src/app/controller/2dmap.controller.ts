@@ -15,6 +15,7 @@ import {
 import {
   Georef
 } from '../utils/georef.utils';
+import * as $ from 'jquery';
 
 export class TwoDMapController {
 
@@ -32,35 +33,36 @@ export class TwoDMapController {
   static iHighestBird: number;
   static iBirdStrikeCount: number;
   static bSnapShot = false;
+  static bShowGeoRefCounter: any;
 
   /**
    * set settings and config for mapview
    */
-  static setMapSettings():void{
+  static setMapSettings(): void {
     // Set GeoRef
 
-        AppModule.bStarted = true;
-        this.createGeoRefSquares('NK', 'E', 4, 'B', 46, 'QL');
-        this.createGeoRefSquares('PK', 'A', 15, 'B', 46, 'BL');
-        this._ACCESS_TOKEN = 'pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg';
-        this._MAP = new Map({
-          accessToken: this._ACCESS_TOKEN,
-          container: 'TwoDMap',
-          style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
-          center: [10.447683, 51.163361],
-          minZoom: 5,
-          zoom: 6
-        });
+    AppModule.bStarted = true;
+    this.createGeoRefSquares('NK', 'E', 4, 'B', 46, 'QL');
+    this.createGeoRefSquares('PK', 'A', 15, 'B', 46, 'BL');
+    this._ACCESS_TOKEN = 'pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg';
+    this._MAP = new Map({
+      accessToken: this._ACCESS_TOKEN,
+      container: 'TwoDMap',
+      style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
+      center: [10.447683, 51.163361],
+      minZoom: 5,
+      zoom: 6
+    });
 
-        this._MAP.dragRotate.disable();
+    this._MAP.dragRotate.disable();
 
-        this._MAP.once('load', () => {
-          this.mapOnLoaded();
-        });
+    this._MAP.once('load', () => {
+      this.mapOnLoaded();
+    });
 
-        this._MAP.on('zoom', () => {
-          this.mapOnZoomed();
-        });
+    this._MAP.on('zoom', () => {
+      this.mapOnZoomed();
+    });
   }
 
   /**
@@ -173,7 +175,7 @@ export class TwoDMapController {
   /**
    * set geoJson to Map and create Marker for time lapse
    */
-  static async setGeoJsonTimeMarkers(iTimeMs:any): Promise < void > {
+  static async setGeoJsonTimeMarkers(iTimeMs: any): Promise < void > {
 
     // return if no ms is selected
     if (!iTimeMs) {
@@ -210,9 +212,9 @@ export class TwoDMapController {
   }
 
 
-  static disableHeightLayers(): void{
+  static disableHeightLayers(): void {
 
-   for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 10; i++) {
       const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
       oInput.checked = false;
       const oEvent = {
@@ -235,9 +237,50 @@ export class TwoDMapController {
    */
   static setInfoData(sGeoRef: string): void {
 
+    $.ajax({
+      crossOrigin: true,
+      url: 'http://api.openweathermap.org/data/2.5/weather?lat=' + AppModule.oLatLng.lat + '&lon=' + AppModule.oLatLng.lng + '&appid=b7ecd94f60851402337142f6000793bb',
+      success: (oData) => {
+        const iWindDeg = oData.wind.deg;
+        const oElement = document.getElementById('birdstrike-direction-img') as HTMLImageElement;
+        // https://uni.edu/storm/Wind%20Direction%20slide.pdf
+
+        if ((iWindDeg >= 0 && iWindDeg < 22) || (iWindDeg <= 360 && iWindDeg > 338)) {
+          document.getElementById('birdstrike-direction').innerHTML = "Nord";
+           oElement.src = '../../../assets/wind-n.jpg';
+        } else if (iWindDeg >= 22 && iWindDeg < 67) {
+          document.getElementById('birdstrike-direction').innerHTML = "Nord-Ost";
+          oElement.src = '../../../assets/wind-ne.jpg';
+        } else if (iWindDeg >= 67 && iWindDeg < 112) {
+          document.getElementById('birdstrike-direction').innerHTML = "Ost";
+          oElement.src = '../../../assets/wind-e.jpg';
+        } else if (iWindDeg >= 112 && iWindDeg < 158) {
+          document.getElementById('birdstrike-direction').innerHTML = "Süd-Ost";
+          oElement.src = '../../../assets/wind-es.jpg';
+        } else if (iWindDeg >= 158 && iWindDeg < 203) {
+          document.getElementById('birdstrike-direction').innerHTML = "Süd";
+          oElement.src = '../../../assets/wind-s.jpg';
+        } else if (iWindDeg >= 203 && iWindDeg < 246) {
+          document.getElementById('birdstrike-direction').innerHTML = "Süd-West";
+          oElement.src = '../../../assets/wind-sw.jpg';
+        } else if (iWindDeg >= 246 && iWindDeg < 292) {
+          document.getElementById('birdstrike-direction').innerHTML = "West";
+          oElement.src = '../../../assets/wind-w.jpg';
+        } else if (iWindDeg >= 292 && iWindDeg <= 338) {
+          document.getElementById('birdstrike-direction').innerHTML = "Nord-West";
+          oElement.src = '../../../assets/wind-nw.jpg';
+        } else {
+          document.getElementById('birdstrike-direction').innerHTML = "-";
+        }
+
+      },
+      error: (oError) => {
+        console.log(oError);
+      }
+    });
     document.getElementById('info-address').innerHTML = sGeoRef;
     document.getElementById('info-latlng').innerHTML = AppModule.oLatLng.lat + '<br>' + AppModule.oLatLng.lng;
-    // document.getElementById('info-bird-dir').style.display = 'block';
+    document.getElementById('info-bird-dir').style.display = 'block';
     document.getElementById('info-risk-con').style.display = 'block';
     document.getElementById('info-risk-nosc').style.display = 'none';
   }
@@ -255,6 +298,9 @@ export class TwoDMapController {
         break;
       }
     }
+
+
+    AppModule.aHeightArrayBirds[oBird.getHeightLevelBasedOnHeight()].push(oBird);
 
     if (dAlt < 1000) {
       AppModule.aGeoArray.aGeoArray1.push({
@@ -445,9 +491,7 @@ export class TwoDMapController {
           this._MAP.setLayoutProperty(oLayer.id, 'visibility', 'visible', {
             validate: false
           });
-          if (sId === 'georef') {
-            oLayerGeoRef = oLayer;
-          }
+          oLayerGeoRef = oLayer;
         }
       }
 
@@ -525,9 +569,7 @@ export class TwoDMapController {
           this._MAP.setLayoutProperty(oLayer.id, 'visibility', 'none', {
             validate: true
           });
-          if (sId === 'georef') {
-            oLayerGeoRef = oLayer;
-          }
+          oLayerGeoRef = oLayer;
         }
       }
 
@@ -618,19 +660,29 @@ export class TwoDMapController {
   static async setGeoRefSquares(oEvent: any): Promise < void > {
     const bChecked = oEvent.target.checked;
     if (bChecked) {
-      AppModule.oLoadingModal.open();
       // tslint:disable-next-line: no-shadowed-variable
-      const oLayer: any = this.visibleLayers('georef');
-      this._MAP.on('render', oLayer.id, () => {
-        AppModule.oLoadingModal.close();
-      });
+      const oLayer: any = this.visibleLayers('georefzone');
+      this._MAP.on('render', oLayer.id, () => {});
 
     } else {
-      this.noneVisibleLayers('georef');
+      this.noneVisibleLayers('georefzone');
     }
   }
 
+  static async setGeoRefCounter(oEvent: any): Promise < void > {
+    const bChecked = oEvent.target.checked;
+    this.bShowGeoRefCounter = bChecked;
+    if (bChecked) {
+      const oLayer: any = this.visibleLayers('georefcounter');
+      this._MAP.on('render', oLayer.id, () => {});
+    } else {
+      this.noneVisibleLayers('georefcounter');
+    }
+  }
 
+  /**
+   * add Layer based on Height Level to Map
+   */
   static async addLayerToMap(iHeight: number): Promise < void > {
     if (this._MAP.getLayer('kft' + iHeight)) {
       this._MAP.removeLayer('kft' + iHeight);
@@ -698,7 +750,7 @@ export class TwoDMapController {
 
     for (let iPos = 1; iPos < iEndLength - iStartLength; iPos++) {
       sId = iStartLength + iPos + iHeigth;
-      this._MAP.addSource(sId + 'vLinegeoref', {
+      this._MAP.addSource(sId + 'vLinegeorefzone', {
         type: 'geojson',
         data: {
           type: 'Feature',
@@ -713,9 +765,9 @@ export class TwoDMapController {
       });
 
       this._MAP.addLayer({
-        id: sId + 'vLinegeoref',
+        id: sId + 'vLinegeorefzone',
         type: 'line',
-        source: sId + 'vLinegeoref',
+        source: sId + 'vLinegeorefzone',
         layout: {
           visibility: 'none',
           'line-join': 'round',
@@ -731,7 +783,7 @@ export class TwoDMapController {
     for (let i = 1; i < iEndHeight - iStartHeight; i++) {
       sId = iStartHeight + i + iStartLength;
 
-      this._MAP.addSource(sId + 'hLinegeoref', {
+      this._MAP.addSource(sId + 'hLinegeorefzone', {
         type: 'geojson',
         data: {
           type: 'Feature',
@@ -746,9 +798,9 @@ export class TwoDMapController {
       });
 
       this._MAP.addLayer({
-        id: sId + 'hLinegeoref',
+        id: sId + 'hLinegeorefzone',
         type: 'line',
-        source: sId + 'hLinegeoref',
+        source: sId + 'hLinegeorefzone',
         layout: {
           visibility: 'none',
           'line-join': 'round',
@@ -784,8 +836,7 @@ export class TwoDMapController {
       const oGeoFirstRef = aGeoZone[i];
       const oGeoSecondRef = aGeoZone[i + 1];
 
-      sId = oGeoFirstRef + '' + oGeoSecondRef + 'georef';
-
+      sId = oGeoFirstRef + '' + oGeoSecondRef + 'georefzone';
       this._MAP.addSource(sId, {
         type: 'geojson',
         data: {
@@ -823,8 +874,7 @@ export class TwoDMapController {
   static async createGeoRefGeoJson(): Promise < void > {
     for (const oGeoRef of AppModule.GEOREF) {
 
-      const sId = oGeoRef.sLetter + oGeoRef.sZone + 'areageoref';
-
+      const sId = oGeoRef.sLetter + oGeoRef.sZone + 'areageorefzone';
       if (!this._MAP.getSource(sId)) {
         this._MAP.addSource(sId, {
           type: 'geojson',
@@ -857,43 +907,61 @@ export class TwoDMapController {
     }
   }
 
-  static createTimeLayerScreenshot(): void{
+  static createGeoRefCounterCircles(): void {
 
-    const iMinute = 1;
-    this.bSnapShot = true;
+    for (const oGeoRef of AppModule.GEOREF) {
 
-    for (let iColor = 1; iColor <= 10; iColor++) {
-      if (AppModule.aTimeArrayGeoJSON[iMinute] !== undefined && AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
-        AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
-
-        const layerId = 'screenshot' + iMinute + Colors.getColorByLevel(iColor);
-        if (this._SCREENSHOT_MAP.getLayer(layerId)) {
-          this._SCREENSHOT_MAP.removeLayer(layerId);
-        }
-        if (this._SCREENSHOT_MAP.getSource(layerId)) {
-          this._SCREENSHOT_MAP.removeSource(layerId);
-        }
-        this._SCREENSHOT_MAP.addSource(layerId, {
+      const sId = 'georefcounter' + oGeoRef.sZone + oGeoRef.sLetter;
+      if (!this._MAP.getSource(sId)) {
+        this._MAP.addSource(sId, {
           type: 'geojson',
           data: {
-            type: 'FeatureCollection',
-            features: AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)]
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [
+                oGeoRef.iLngStart + 0.5, oGeoRef.iLatStart + 0.5
+              ]
+            }
           }
         });
-
-        this._SCREENSHOT_MAP.addLayer({
-          id: layerId,
-          type: 'circle',
-          layout: {
-            visibility: 'none'
-          },
-          source: layerId,
-          paint: {
-            'circle-radius': 2,
-            'circle-color': Colors.getColorByLevel(iColor)
-          },
-        });
       }
+
+      if (this._MAP.getLayer(sId + 'circle')) {
+        this._MAP.removeLayer(sId + 'circle');
+      }
+
+      if (this._MAP.getLayer(sId + 'text')) {
+        this._MAP.removeLayer(sId + 'text');
+      }
+
+      this._MAP.addLayer({
+        id: sId + 'circle',
+        type: 'circle',
+        source: sId,
+        layout: {
+          visibility: this.bShowGeoRefCounter ? 'visible' : 'none',
+        },
+        paint: {
+          'circle-color': '#3f759b',
+          'circle-radius': 20
+        }
+      });
+
+      this._MAP.addLayer({
+        id: sId + 'text',
+        type: 'symbol',
+        source: sId,
+        paint: {
+          'text-color': '#ffffff'
+        },
+        layout: {
+          visibility: this.bShowGeoRefCounter ? 'visible' : 'none',
+          'text-field': oGeoRef.iCounter.toString(),
+          'text-size': 13,
+        }
+      });
+
     }
   }
 }

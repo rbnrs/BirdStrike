@@ -156,7 +156,7 @@ export class ThreeDMapController {
   static async createTimeLayer(iMinute: number): Promise < void > {
     const oGraphicLayer = new GraphicsLayer();
     const oBirdsCollection = AppModule.aTimeArrayBirds[iMinute];
-    let iCounter = 0 ;
+    let iCounter = 0;
     for (let i = 1; i <= 10; i++) {
       const sColor = Colors.getColorByLevel(i);
       const aBirds = oBirdsCollection[sColor];
@@ -226,11 +226,12 @@ export class ThreeDMapController {
   }
 
   static async setTimeLayer(iMinute: number): Promise < void > {
+    // tslint:disable-next-line: no-shadowed-variable
     const oLayer = this.oMap.layers.find((oLayer) => {
       return oLayer.id === '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
     });
 
-    if(oLayer){
+    if (oLayer) {
       oLayer.visible = true;
     }
   }
@@ -239,7 +240,7 @@ export class ThreeDMapController {
 
     for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
       const oLayer = this.oMap.findLayerById('3dMinute' + iMinute + AppModule.sCurrentGeoRef);
-      if(oLayer){
+      if (oLayer) {
         oLayer.visible = false;
       }
     }

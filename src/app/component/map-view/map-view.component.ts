@@ -130,6 +130,7 @@ import {
     if (this.is3D) {
       ThreeDMapController.removeAllTimeLayers();
     } else {
+      TwoDMapController.disableHeightLayers();
       TwoDMapController.clearLayers();
     }
 
@@ -339,6 +340,7 @@ import {
 
     AppModule.aTimeArrayGeoJSON = {};
     AppModule.aTimeArrayBirds = {};
+    AppModule.aBirds = [];
     TwoDMapController.iHighestBird = 0;
     TwoDMapController.iBirdStrikeCount = 0;
   }

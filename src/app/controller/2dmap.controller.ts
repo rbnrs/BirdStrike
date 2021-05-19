@@ -19,6 +19,7 @@ import * as $ from 'jquery';
 
 export class TwoDMapController {
 
+  // tslint:disable-next-line: variable-name
   static _currentMinute: number;
   static _ACCESS_TOKEN: string;
   static _MAP: Map;
@@ -26,7 +27,6 @@ export class TwoDMapController {
   static oCurrentMarker: any;
   static timeLapseInterval: any;
   static bGeoZone: boolean;
-  _timeLapseInterval: any;
   // tslint:disable-next-line: member-ordering
   static iTimeMs: any;
   static oMapPopup: any;
@@ -34,6 +34,8 @@ export class TwoDMapController {
   static iBirdStrikeCount: number;
   static bSnapShot = false;
   static bShowGeoRefCounter: any;
+  // tslint:disable-next-line: variable-name
+  _timeLapseInterval: any;
 
   /**
    * set settings and config for mapview
@@ -246,31 +248,31 @@ export class TwoDMapController {
         // https://uni.edu/storm/Wind%20Direction%20slide.pdf
 
         if ((iWindDeg >= 0 && iWindDeg < 22) || (iWindDeg <= 360 && iWindDeg > 338)) {
-          document.getElementById('birdstrike-direction').innerHTML = "Nord";
-           oElement.src = '../../../assets/wind-n.jpg';
+          document.getElementById('birdstrike-direction').innerHTML = 'Nord';
+          oElement.src = '../../../assets/wind-n.jpg';
         } else if (iWindDeg >= 22 && iWindDeg < 67) {
-          document.getElementById('birdstrike-direction').innerHTML = "Nord-Ost";
+          document.getElementById('birdstrike-direction').innerHTML = 'Nord-Ost';
           oElement.src = '../../../assets/wind-ne.jpg';
         } else if (iWindDeg >= 67 && iWindDeg < 112) {
-          document.getElementById('birdstrike-direction').innerHTML = "Ost";
+          document.getElementById('birdstrike-direction').innerHTML = 'Ost';
           oElement.src = '../../../assets/wind-e.jpg';
         } else if (iWindDeg >= 112 && iWindDeg < 158) {
-          document.getElementById('birdstrike-direction').innerHTML = "Süd-Ost";
+          document.getElementById('birdstrike-direction').innerHTML = 'Süd-Ost';
           oElement.src = '../../../assets/wind-es.jpg';
         } else if (iWindDeg >= 158 && iWindDeg < 203) {
-          document.getElementById('birdstrike-direction').innerHTML = "Süd";
+          document.getElementById('birdstrike-direction').innerHTML = 'Süd';
           oElement.src = '../../../assets/wind-s.jpg';
         } else if (iWindDeg >= 203 && iWindDeg < 246) {
-          document.getElementById('birdstrike-direction').innerHTML = "Süd-West";
+          document.getElementById('birdstrike-direction').innerHTML = 'Süd-West';
           oElement.src = '../../../assets/wind-sw.jpg';
         } else if (iWindDeg >= 246 && iWindDeg < 292) {
-          document.getElementById('birdstrike-direction').innerHTML = "West";
+          document.getElementById('birdstrike-direction').innerHTML = 'West';
           oElement.src = '../../../assets/wind-w.jpg';
         } else if (iWindDeg >= 292 && iWindDeg <= 338) {
-          document.getElementById('birdstrike-direction').innerHTML = "Nord-West";
+          document.getElementById('birdstrike-direction').innerHTML = 'Nord-West';
           oElement.src = '../../../assets/wind-nw.jpg';
         } else {
-          document.getElementById('birdstrike-direction').innerHTML = "-";
+          document.getElementById('birdstrike-direction').innerHTML = '-';
         }
 
       },
@@ -609,6 +611,7 @@ export class TwoDMapController {
 
     for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
       for (let iColor = 1; iColor <= 10; iColor++) {
+        // tslint:disable-next-line: max-line-length
         if (AppModule.aTimeArrayGeoJSON[iMinute] !== undefined && AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)] !== undefined &&
           AppModule.aTimeArrayGeoJSON[iMinute][Colors.getColorByLevel(iColor)].length !== 0) {
 

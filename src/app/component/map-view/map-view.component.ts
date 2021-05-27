@@ -325,6 +325,11 @@ import {
       aGeoArray10: [],
     };
 
+    for (let iPos = 0; iPos < AppModule.GEOREF.length; iPos++) {
+      const oGeoRef = AppModule.GEOREF[iPos];
+      oGeoRef.iCounter = 0;
+    }
+
     AppModule.aHeightArrayBirds = {
       1: [],
       2: [],

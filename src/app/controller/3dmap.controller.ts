@@ -167,7 +167,7 @@ export class ThreeDMapController {
               type: 'point',
               longitude: oBird.dLng,
               latitude: oBird.dLat,
-              z: oBird.dAlt
+              z: oBird.dAlt * 3
             };
 
             const simpleMarkerSymbol = {

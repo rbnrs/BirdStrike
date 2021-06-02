@@ -50,7 +50,7 @@ export class TwoDMapController {
     this._MAP = new Map({
       accessToken: this._ACCESS_TOKEN,
       container: 'TwoDMap',
-      style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
+      style: 'mapbox://styles/rbrns/cknzoq6re08pi17nbiuvtqrsl?optimize=true',
       center: [10.447683, 51.163361],
       minZoom: 5,
       zoom: 6
@@ -195,10 +195,11 @@ export class TwoDMapController {
     this.timeLapseInterval = setInterval(() => {
       for (let iColor = 1; iColor <= 10; iColor++) {
         const layerId = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
-        if (this._MAP.getLayer(layerId)) {
-          this._MAP.setLayoutProperty(layerId, 'visibility', 'visible');
+        if(AppModule.aSelectedLayers.includes(iColor)){
+          if (this._MAP.getLayer(layerId)) {
+            this._MAP.setLayoutProperty(layerId, 'visibility', 'visible');
+          }
         }
-
       }
       // repeat if minutes = 59
       if (this._currentMinute === 55) {
@@ -217,8 +218,6 @@ export class TwoDMapController {
   static disableHeightLayers(): void {
 
     for (let i = 1; i <= 10; i++) {
-      const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
-      oInput.checked = false;
       const oEvent = {
         target: {
           checked: false,
@@ -239,6 +238,7 @@ export class TwoDMapController {
    */
   static setInfoData(sGeoRef: string): void {
 
+    //TODO change look for data in DWD
     $.ajax({
       crossOrigin: true,
       url: 'http://api.openweathermap.org/data/2.5/weather?lat=' + AppModule.oLatLng.lat + '&lon=' + AppModule.oLatLng.lng + '&appid=b7ecd94f60851402337142f6000793bb',
@@ -946,8 +946,8 @@ export class TwoDMapController {
           visibility: this.bShowGeoRefCounter ? 'visible' : 'none',
         },
         paint: {
-          'circle-color': '#3f759b',
-          'circle-radius': 20
+          'circle-color': Georef.counterRiskColor(oGeoRef.iCounter),
+          'circle-radius': Georef.counterRiskSize(oGeoRef.iCounter)
         }
       });
 

@@ -42,4 +42,40 @@ export class Georef {
     }
     return String.fromCharCode(cCharNext.charCodeAt(0) + 1);
   }
+
+  static counterRiskSize(iCounter): number{
+
+    if(iCounter < 500){
+      return 15;
+    }else if(iCounter <= 2000){
+      return 19;
+    }else if(iCounter <= 5000 ){
+      return 23;
+    }else if( iCounter <= 10000){
+      return 27
+    }else if( iCounter > 10000) {
+      return 31;
+    }
+
+    return 15;
+  }
+
+  static counterRiskColor(iCounter): string{
+
+    if(iCounter < 500){
+      return '#9fbacd';
+    }else if(iCounter <= 2000){
+      return '#789eb9';
+    }else if(iCounter <= 5000 ){
+      return '#5282a5';
+    }else if( iCounter <= 10000){
+      return '#38698b';
+    }else if( iCounter > 10000) {
+      return '#2c516c';
+    }
+
+    return '#9fbacd';
+  }
+
+
 }

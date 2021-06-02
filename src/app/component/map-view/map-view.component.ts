@@ -116,6 +116,12 @@ import {
    * @param clickevent of Checkbox
    */
   changeMapView(iHeight: number, oEvent: any): void {
+    if(AppModule.aSelectedLayers.includes(iHeight)){
+      delete AppModule.aSelectedLayers[AppModule.aSelectedLayers.indexOf(iHeight)];
+    }else{
+      AppModule.aSelectedLayers.push(iHeight);
+    }
+
     if (this.is3D) {
       ThreeDMapController.setHeightLayer(iHeight);
     } else {

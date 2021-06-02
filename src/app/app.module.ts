@@ -40,6 +40,7 @@ export class AppModule{
   static oSettingsModal: any;
   static iStartTime: number;
   static oDetailDialog: any;
+  static aSelectedLayers = [];
 
 
   static startPerformanceTesting(): void{

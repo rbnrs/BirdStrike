@@ -1,275 +1,286 @@
-<div id="loading-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30);">
-    <div class="loading-bar">
-        <img src="../../../assets/logo.jpg" width="300px">
-    </div>
-    <div class="progress loading-bar" style="width:20%">
-        <div class="indeterminate"></div>
-    </div>
+<div id="loading-panel"
+  style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30);">
+  <div class="loading-bar">
+    <img src="../../../assets/logo.jpg" width="300px">
+  </div>
+  <div class="progress loading-bar" style="width:20%">
+    <div class="indeterminate"></div>
+  </div>
 </div>
-<div id="smww-panel" style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30); display:none">
-    <div class="loading-bar">
-        <p style="color: white; font-size:45px">¯\_(ツ)_/¯</p>
-        <p style="color: white; font-size:15px">Something went wrong..... <br>Please reload the App or try it again later.
-        </p>
-    </div>
+<div id="smww-panel"
+  style="height: 100%; width: 100%; padding-top: 15% !important; background-color: rgb(30 29 30); display:none">
+  <div class="loading-bar">
+    <p style="color: white; font-size:45px">¯\_(ツ)_/¯</p>
+    <p style="color: white; font-size:15px">Something went wrong..... <br>Please reload the App or try it again later.
+    </p>
+  </div>
 
 </div>
 <div id="control-panel" class="box stack-top" style="pointer-events: none !important; display: none;">
-    <div class="info-card">
-        <div id="info-card" style="pointer-events: auto !important; visibility: visible">
-            <div class="side-div z-depth-5">
-                <div id="info-risk-con" style="display: none">
-                    <p class="box-label">Aktuelles GEOREF:</p>
-                    <p id="info-address" class="info-side-div birdstrike-direction"></p>
-                    <p id="info-latlng" class="info-side-div address-lat-lng"></p>
-                </div>
-                <div id="info-risk-nosc">
-                    <p class="info-risk-nos">Bitte Standort in der Karte auswählen</p>
-                </div>
-            </div>
-            <div id="info-bird-dir" class="side-div z-depth-5" style="display: none">
-                <p class="box-label">Windrichtung:</p>
-                <div style="display: inline-flex; margin-top: 10px; align-items: center;">
-                    <img id="birdstrike-direction-img" src="" width="50px" height="50px">
-                    <h2 id="birdstrike-direction" class="birdstrike-direction" style="margin-block: auto;"></h2>
-                </div>
-            </div>
-            <div class="side-div z-depth-5">
-                <p class="box-label">Anzahl Meldungen:</p>
-                <h2 id="count-birdstrike" class="birdstrike-highest"></h2>
-                <p id="highest-birdstrike" class="info-side-div"></p>
-            </div>
-
-            <div class="side-div z-depth-5">
-                <p class="box-label">Letzte Meldung:</p>
-                <h2 id="info-update" class="last-update"></h2>
-            </div>
-            <div id="info-box-min" class="side-div z-depth-5" style="visibility: hidden">
-                <p class="box-label">Aktuelle Minute:</p>
-                <h2 id="info-minute" class="birdstrike-highest">0</h2>
-            </div>
+  <div class="info-card">
+    <div id="info-card" style="pointer-events: auto !important; visibility: visible">
+      <div class="side-div z-depth-5">
+        <div id="info-risk-con" style="display: none">
+          <p class="box-label">Aktuelles GEOREF:</p>
+          <p id="info-address" class="info-side-div birdstrike-direction"></p>
+          <p id="info-latlng" class="info-side-div address-lat-lng"></p>
         </div>
-        <div class="legend non-touchable">
-            <div style="float: right; display: inline-flex; pointer-events: auto !important;">
+        <div id="info-risk-nosc">
+          <p class="info-risk-nos">Bitte Standort in der Karte auswählen</p>
+        </div>
+      </div>
+      <div id="info-bird-dir" class="side-div z-depth-5" style="display: none">
+        <p class="box-label">Windrichtung:</p>
+        <div style="display: inline-flex; margin-top: 10px; align-items: center;">
+          <img id="birdstrike-direction-img" src="" width="50px" height="50px">
+          <h2 id="birdstrike-direction" class="birdstrike-direction" style="margin-block: auto;"></h2>
+        </div>
+      </div>
+      <div class="side-div z-depth-5">
+        <p class="box-label">Anzahl Meldungen:</p>
+        <h2 id="count-birdstrike" class="birdstrike-highest"></h2>
+        <p id="highest-birdstrike" class="info-side-div"></p>
+      </div>
 
-                <button id="threedviewbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="set3DView()">3D
+      <div class="side-div z-depth-5">
+        <p class="box-label">Letzte Meldung:</p>
+        <h2 id="info-update" class="last-update"></h2>
+      </div>
+      <div id="info-box-min" class="side-div z-depth-5" style="visibility: hidden">
+        <p class="box-label">Aktuelle Minute:</p>
+        <h2 id="info-minute" class="birdstrike-highest">0</h2>
+      </div>
+    </div>
+    <div class="legend non-touchable">
+      <div style="float: right; display: inline-flex; pointer-events: auto !important;">
+
+        <button id="threedviewbtn" class="waves-effect waves-light btn"
+          style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="set3DView()">3D
           Darstellung</button>
-                <button id="crosssecbtn" class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 15px; visibility: hidden" (click)="openDetailDialog()">Detailansicht</button>
-                <button class="waves-effect waves-light btn" style="background-color: #3F9B93" (click)="showSettingsDialog()">Einstellungen</button>
-                <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-left: 15px;" (click)="clearMapView()">Zurücksetzen</button>
-                <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px; margin-left: 40px" (click)="startTimeLapse()">Start</button>
-                <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px" (click)="pauseTimeLapse()">Pause</button>
-                <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1' style="background-color: #3F9B93; width:200px;">Zeitraffer auswählen</a>
-                <ul id='dropdown1' class='dropdown-content' (click)="changeTime($event)">
-                    <li><a href="#!">100 ms</a></li>
-                    <li><a href="#!">300 ms</a></li>
-                    <li><a href="#!">500 ms</a></li>
-                    <li><a href="#!">1000 ms</a></li>
-                    <li><a href="#!">2000 ms</a></li>
-                    <li><a href="#!">5000 ms</a></li>
-                    <li><a href="#!">10000 ms</a></li>
-                </ul>
-            </div>
-            <div class="non-touchable">
-                <div class="non-touchable">
-                    <div class="card white darken-1 height-legend non-touchable" style="background-color: #1f1e1e !important; width: max-content; pointer-events: auto !important;">
-                        <p>
-                            <label>
+        <button id="crosssecbtn" class="waves-effect waves-light btn"
+          style="background-color: #3F9B93; margin-right: 15px; visibility: hidden"
+          (click)="openDetailDialog()">Detailansicht</button>
+        <button class="waves-effect waves-light btn" style="background-color: #3F9B93"
+          (click)="showSettingsDialog()">Einstellungen</button>
+        <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-left: 15px;"
+          (click)="clearMapView()">Zurücksetzen</button>
+        <button class="waves-effect waves-light btn"
+          style="background-color: #3F9B93; margin-right: 5px; margin-left: 40px"
+          (click)="startTimeLapse()">Start</button>
+        <button class="waves-effect waves-light btn" style="background-color: #3F9B93; margin-right: 5px"
+          (click)="pauseTimeLapse()">Pause</button>
+        <a id="timeRef" class='dropdown-trigger btn' href='#' data-target='dropdown1'
+          style="background-color: #3F9B93; width:200px;">Zeitraffer auswählen</a>
+        <ul id='dropdown1' class='dropdown-content' (click)="changeTime($event)">
+          <li><a href="#!">300 ms</a></li>
+          <li><a href="#!">500 ms</a></li>
+          <li><a href="#!">1000 ms</a></li>
+          <li><a href="#!">2000 ms</a></li>
+          <li><a href="#!">5000 ms</a></li>
+          <li><a href="#!">10000 ms</a></li>
+        </ul>
+      </div>
+      <div class="non-touchable">
+        <div class="non-touchable">
+          <div class="card white darken-1 height-legend non-touchable"
+            style="background-color: #1f1e1e !important; width: max-content; pointer-events: auto !important;">
+            <p>
+              <label>
                 <input id="cbheight1" type="checkbox" class="filled-in color-ft-0-1"
                   (change)="changeMapView(1,$event)" />
                 <span id="spanheight1" class="legend-text">
                   &lt; 1 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight2" type="checkbox" class="filled-in color-ft-1-2"
                   (change)="changeMapView(2,$event)" />
                 <span id="spanheight2" class="legend-text">1 - 2 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight3" type="checkbox" class="filled-in color-ft-2-3"
                   (change)="changeMapView(3,$event)" />
                 <span id="spanheight3" class="legend-text">2 - 3 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight4" type="checkbox" class="filled-in color-ft-3-4"
                   (change)="changeMapView(4,$event)" />
                 <span id="spanheight4" class="legend-text">3 - 4 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight5" type="checkbox" class="filled-in color-ft-4-5"
                   (change)="changeMapView(5,$event)" />
                 <span id="spanheight5" class="legend-text">4 - 5 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight6" type="checkbox" class="filled-in color-ft-5-6"
                   (change)="changeMapView(6,$event)" />
                 <span id="spanheight6" class="legend-text">5 - 6 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight7" type="checkbox" class="filled-in color-ft-6-7"
                   (change)="changeMapView(7,$event)" />
                 <span id="spanheight7" class="legend-text">6 - 8 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight8" type="checkbox" class="filled-in color-ft-7-8"
                   (change)="changeMapView(8,$event)" />
                 <span id="spanheight8" class="legend-text">8 - 10 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight9" type="checkbox" class="filled-in color-ft-8-9"
                   (change)="changeMapView(9,$event)" />
                 <span id="spanheight9" class="legend-text">10 - 12 kft</span>
               </label>
-                        </p>
-                        <p>
-                            <label>
+            </p>
+            <p>
+              <label>
                 <input id="cbheight10" type="checkbox" class="filled-in color-ft-9-10"
                   (change)="changeMapView(10,$event)" />
                 <span id="spanheight10" class="legend-text">&gt; 12 kft</span>
               </label>
 
-                        </p>
-                    </div>
-                </div>
-            </div>
+            </p>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 <div id="TwoDMap" class="map box" style="visibility: hidden"></div>
 <div id="ThreeDMap" style="visibility:hidden"></div>
 <div id="detailmodal" class="modal" style="width: 60% !important;">
-    <div class="modal-content" style="height: 100%">
-        <div class="row">
-            <div class="col s12">
-                <ul class="tabs" style="background-color: transparent !important">
-                    <li class="tab col s3"><a class="active" href="#heightlevel">Höhenverteilung</a></li>
-                    <li class="tab col s3"><a href="#crosssection">Querschnitt</a></li>
-                    <li class="tab col s3"><a href="#otherstat">weitere Auswertungen</a></li>
-                </ul>
-            </div>
-            <div id="heightlevel" class="col s12">
-                <canvas id="barchart" style="height: 100%; width: 100%"></canvas>
-            </div>
-            <div id="crosssection" class="col s12">
-                <p class="address-lat-lng"></p>
-                <canvas id="crosssectionchart" style="height: 100%; width: 100%"></canvas>
-            </div>
-            <div id="otherstat" class="col s12">
-                <table style="margin-top: 20px">
-                    <tr style="border-bottom: none !important;">
-                        <td style="font-weight: bold;">Gesamt</td>
-                    </tr>
-                    <tr>
-                        <td>GEOREF mit meisten Meldungen</td>
-                        <td id="otherstatgeorefcountmost"></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Höhenlevel mit meisten Meldungen</td>
-                        <td id="otherstatmostlevel"></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Letzte Meldung</td>
-                        <td id="otherstatlastupdate"></td>
-                        <td></td>
-                    </tr>
-                    <tr style="border-bottom: none !important;">
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr style="border-bottom: none !important;">
-                        <td></td>
-                        <td style="font-weight: bold;">Gesamt</td>
-                        <td id="otherstatgeoref" style="font-weight: bold;"></td>
-                    </tr>
-                    <tr>
-                        <td>Anzahl an Meldung</td>
-                        <td id="otherstatcount"></td>
-                        <td id="otherstatcountgeoref"></td>
-                    </tr>
-                    <tr>
-                        <td>Höchste Meldung</td>
-                        <td id="otherstathighest"></td>
-                        <td id="otherstathighestgeoref"></td>
-                    </tr>
-                    <tr>
-                        <td>Vogelschwarmrisiko</td>
-                        <td id="otherstatrisk"></td>
-                        <td id="otherstatriskgeoref"></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+  <div class="modal-content" style="height: 100%">
+    <div class="row">
+      <div class="col s12">
+        <ul class="tabs" style="background-color: transparent !important">
+          <li class="tab col s3"><a class="active" href="#heightlevel">Höhenverteilung</a></li>
+          <li class="tab col s3"><a href="#crosssection">Querschnitt</a></li>
+          <li class="tab col s3"><a href="#otherstat">weitere Auswertungen</a></li>
+        </ul>
+      </div>
+      <div id="heightlevel" class="col s12">
+        <canvas id="barchart" style="height: 100%; width: 100%"></canvas>
+      </div>
+      <div id="crosssection" class="col s12">
+        <p class="address-lat-lng"></p>
+        <canvas id="crosssectionchart" style="height: 100%; width: 100%"></canvas>
+      </div>
+      <div id="otherstat" class="col s12">
+        <table style="margin-top: 20px">
+          <tr style="border-bottom: none !important;">
+            <td style="font-weight: bold;">Gesamt</td>
+          </tr>
+          <tr>
+            <td>GEOREF mit meisten Meldungen</td>
+            <td id="otherstatgeorefcountmost"></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Höhenlevel mit meisten Meldungen</td>
+            <td id="otherstatmostlevel"></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Letzte Meldung</td>
+            <td id="otherstatlastupdate"></td>
+            <td></td>
+          </tr>
+          <tr style="border-bottom: none !important;">
+            <td></td>
+            <td></td>
+          </tr>
+          <tr style="border-bottom: none !important;">
+            <td></td>
+            <td style="font-weight: bold;">Gesamt</td>
+            <td id="otherstatgeoref" style="font-weight: bold;"></td>
+          </tr>
+          <tr>
+            <td>Anzahl an Meldung</td>
+            <td id="otherstatcount"></td>
+            <td id="otherstatcountgeoref"></td>
+          </tr>
+          <tr>
+            <td>Höchste Meldung</td>
+            <td id="otherstathighest"></td>
+            <td id="otherstathighestgeoref"></td>
+          </tr>
+          <tr>
+            <td>Vogelschwarmrisiko</td>
+            <td id="otherstatrisk"></td>
+            <td id="otherstatriskgeoref"></td>
+          </tr>
+        </table>
+      </div>
     </div>
-    <div class="modal-footer">
-        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
+  </div>
 </div>
 <div id="loadingmodal" class="modal loading-modal">
-    <div class="modal-content">
-        <div class="preloader-wrapper small active">
-            <div class="spinner-layer spinner-green-only">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
+  <div class="modal-content">
+    <div class="preloader-wrapper small active">
+      <div class="spinner-layer spinner-green-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
         </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 <div id="statisticmodal" class="modal">
-    <div class="modal-content">
-        <h4>Einstellungen</h4>
-        <br>
-        <div style="margin-left: 20px">
-            <div class="switch">
-                <label class="switch-text-statistics">
+  <div class="modal-content">
+    <h4>Einstellungen</h4>
+    <br>
+    <div style="margin-left: 20px">
+      <div class="switch">
+        <label class="switch-text-statistics">
           <input type="checkbox" (change)="setGeoRefSquares($event)">
           <span class="lever"></span>
           GEOREF-Raster anzeigen
         </label>
-            </div>
-            <br>
-            <div class="switch">
-                <label class="switch-text-statistics">
+      </div>
+      <br>
+      <div class="switch">
+        <label class="switch-text-statistics">
           <input type="checkbox">
           <span class="lever"></span>
           Risikoeinschätzung anzeigen
         </label>
-            </div>
-            <br>
-            <div class="switch">
-                <label class="switch-text-statistics">
+      </div>
+      <br>
+      <div class="switch">
+        <label class="switch-text-statistics">
           <input type="checkbox" (change)="setGeoRefCounter($event)">
           <span class="lever"></span>
           Anzahl an Meldungen anzeigen
         </label>
-            </div>
-        </div>
+      </div>
     </div>
-    <div class="modal-footer">
-        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Schließen</a>
+  </div>
 </div>

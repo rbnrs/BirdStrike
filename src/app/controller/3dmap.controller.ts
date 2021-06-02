@@ -154,10 +154,10 @@ export class ThreeDMapController {
   }
 
   static async createTimeLayer(iMinute: number): Promise < void > {
-    const oGraphicLayer = new GraphicsLayer();
     const oBirdsCollection = AppModule.aTimeArrayBirds[iMinute];
     let iCounter = 0;
     for (let i = 1; i <= 10; i++) {
+      const oGraphicLayer = new GraphicsLayer();
       const sColor = Colors.getColorByLevel(i);
       const aBirds = oBirdsCollection[sColor];
       if (aBirds) {
@@ -189,11 +189,12 @@ export class ThreeDMapController {
           }
         }
       }
+
+      oGraphicLayer.id = '3dMinute' + iMinute + sColor + AppModule.sCurrentGeoRef;
+      oGraphicLayer.visible = false;
+      this.oMap.add(oGraphicLayer);
+      this.oTimeLayer[iMinute] = oGraphicLayer;
     }
-    oGraphicLayer.id = '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
-    oGraphicLayer.visible = false;
-    this.oMap.add(oGraphicLayer);
-    this.oTimeLayer[iMinute] = oGraphicLayer;
   }
 
 
@@ -226,13 +227,20 @@ export class ThreeDMapController {
   }
 
   static async setTimeLayer(iMinute: number): Promise < void > {
-    // tslint:disable-next-line: no-shadowed-variable
-    const oLayer = this.oMap.layers.find((oLayer) => {
-      return oLayer.id === '3dMinute' + iMinute + AppModule.sCurrentGeoRef;
-    });
 
-    if (oLayer) {
-      oLayer.visible = true;
+
+    for (let i = 1; i <= 10; i++) {
+      // tslint:disable-next-line: no-shadowed-variable
+      if (AppModule.aSelectedLayers.includes(i)) {
+        const oLayer = this.oMap.layers.find((oLayer) => {
+          return oLayer.id === '3dMinute' + iMinute + Colors.getColorByLevel(i) + AppModule.sCurrentGeoRef;
+        });
+
+        if (oLayer) {
+          oLayer.visible = true;
+        }
+      }
+
     }
   }
 

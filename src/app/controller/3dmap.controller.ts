@@ -252,15 +252,13 @@ export class ThreeDMapController {
         oLayer.visible = false;
       }
     }
-    document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
+    //document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
 
   }
 
   static disableHeightLayers(): void {
 
     for (let i = 1; i <= 10; i++) {
-      const oInput = document.getElementById('cbheight' + i) as HTMLInputElement;
-      oInput.checked = false;
       const oLayer = this.oHeightLayer[i];
       if (this.oMap.layers.includes(oLayer)) {
         this.oMap.remove(oLayer);

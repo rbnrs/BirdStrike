@@ -33,6 +33,9 @@ import {
 import {
   ThreeDMapController
 } from 'src/app/controller/3dmap.controller';
+import {
+  Georef
+} from 'src/app/utils/georef.utils';
 
 
 @Component({
@@ -90,10 +93,10 @@ import {
   setBirdstrikeRefreshInterval(): void {
 
     this.oRefreshInterval = setInterval(async () => {
-        TwoDMapController.removeLayers('kft');
-        TwoDMapController.removeLayers('minutes');
-        this._readMapData();
-      }, 1000 * 60 * 5);
+      TwoDMapController.removeLayers('kft');
+      TwoDMapController.removeLayers('minutes');
+      this._readMapData();
+    }, 1000 * 60 * 5);
 
   }
 
@@ -116,9 +119,9 @@ import {
    * @param clickevent of Checkbox
    */
   changeMapView(iHeight: number, oEvent: any): void {
-    if(AppModule.aSelectedLayers.includes(iHeight)){
+    if (AppModule.aSelectedLayers.includes(iHeight)) {
       delete AppModule.aSelectedLayers[AppModule.aSelectedLayers.indexOf(iHeight)];
-    }else{
+    } else {
       AppModule.aSelectedLayers.push(iHeight);
     }
 
@@ -197,6 +200,7 @@ import {
 
 
     const aPromises = [];
+    await this._readGeorefFromDb();
 
     for (let i = 0; i < iQueries; i++) {
       aPromises.push(this._readDataUrlWithTime(aRequests[i].start, aRequests[i].end));
@@ -207,6 +211,7 @@ import {
         TwoDMapController.setGeoJsonMarkers();
         TwoDMapController.addTimeLayerToMap();
         TwoDMapController.createGeoRefCounterCircles();
+        TwoDMapController.createGeoRefRiskSquares();
         const dCurrentDate = new Date(Date.now());
         this.sLocalDate = dCurrentDate.toLocaleDateString();
         const aTimes = dCurrentDate.toLocaleTimeString().split(':', 2);
@@ -297,6 +302,28 @@ import {
     );
   }
 
+
+  async _readGeorefFromDb(): Promise < void > {
+
+      await $.ajax({
+        crossOrigin: true,
+        url: 'http://localhost:4200/georefs',
+        success: (oData) => {
+          for (let i = 0; i < oData.aGeorefs.length; i++) {
+            let oGeorefDb = oData.aGeorefs[i];
+            //iLngStart: number, iLatStart: number, iLngEnd: number, iLatEnd: number, sLetter: string, sZone: string
+            let oGeoref = new Georef(oGeorefDb.lngstart, oGeorefDb.latstart, oGeorefDb.lngend, oGeorefDb.latend, oGeorefDb.letter, oGeorefDb.zone);
+            oGeoref.setPrediction(oGeorefDb.predict);
+            AppModule.GEOREF.push(oGeoref);
+          }
+        },
+        error: (err) => {
+          console.log(err);
+        }
+      })
+
+  }
+
   /**
    * Handler Shows GeoRef Squares
    * @param oEvent clickevent
@@ -309,9 +336,29 @@ import {
    * Handler Shows GeoRef Counter Circles
    * @param oEvent clickevent
    */
-   setGeoRefCounter(oEvent: any): void {
-     TwoDMapController.setGeoRefCounter(oEvent);
-   }
+  setGeoRefCounter(oEvent: any): void {
+    TwoDMapController.setGeoRefCounter(oEvent);
+  }
+
+  /**
+   * Handler Shows GeoRef Risk Prediction
+   * @param oEvent clickevent
+   */
+  setGeoRefRisk(oEvent: any): void {
+    TwoDMapController.setGeoRefRisk(oEvent);
+  }
+
+
+  /**
+   * Handler change Map Style
+   * @param oEvent clickevent
+   */
+  setMapStyles(oEvent: any): void {
+    TwoDMapController.setMapStyles(oEvent);
+  }
+
+
+
 
   /**
    * Reset Map Data
@@ -349,6 +396,7 @@ import {
       10: [],
     };
 
+    AppModule.GEOREF = [];
     AppModule.aTimeArrayGeoJSON = {};
     AppModule.aTimeArrayBirds = {};
     AppModule.aBirds = [];
@@ -367,10 +415,6 @@ import {
     AppModule.oSettingsModal = oInstancesModals[2];
   }
 
-  showHeightLevel(): void{
-
-  }
-
   /**
    * open Cross-Section Dialog
    */
@@ -381,11 +425,7 @@ import {
     AppModule.oDetailDialog.open();
   }
 
-  set3DView(): void {
-    this.show3dViewer();
-  }
-
-  show3dViewer(): void{
+  show3dViewer(): void {
     if (!this.is3D) {
       AppModule.oLoadingModal.open();
       TwoDMapController.disableHeightLayers();
@@ -405,7 +445,7 @@ import {
 
   }
 
-  showSettingsDialog(): void{
+  showSettingsDialog(): void {
     AppModule.oSettingsModal.open();
   }
 }

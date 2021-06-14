@@ -187,6 +187,14 @@ export class StatisticsController {
   static setOthersData(sLocalDate, sLocalTime): void {
 
     let oGeoRefMost = new Georef(0, 0, 0, 0, '', '');
+    let oCurrentGeoRef;
+
+    let iCounterNone = 0;
+    let iCounterVeryLow = 0;
+    let iCounterLow = 0;
+    let iCounterMedium = 0;
+    let iCounterHigh = 0;
+    let iCounterVeryHigh = 0;
 
     // tslint:disable-next-line: prefer-for-of
     for (let iPos = 0; iPos < AppModule.GEOREF.length; iPos++){
@@ -194,8 +202,32 @@ export class StatisticsController {
       if (oGeoRefMost.iCounter < oGeoRef.iCounter){
         oGeoRefMost = oGeoRef;
       }
-    }
 
+      if(oGeoRef.sZone + oGeoRef.sLetter === AppModule.sCurrentGeoRef){
+        oCurrentGeoRef = oGeoRef;
+      }
+
+      switch (oGeoRef.iPrediction) {
+        case 1:
+          iCounterVeryLow++;
+         break;
+        case 2:
+          iCounterLow++;
+          break;
+        case 3:
+          iCounterMedium++;
+          break;
+        case 4:
+          iCounterHigh++;
+          break;
+        case 5:
+          iCounterVeryHigh++;
+          break;
+        default:
+          iCounterNone++;
+          break;
+      }
+    }
 
     let aHeightLevelMost = [];
     let iHeightLevelMost = 1;
@@ -211,6 +243,14 @@ export class StatisticsController {
       }
     }
 
+    //get Average Risk level
+    // risklevel + 1 because Risk 0 * counter = 0; Reduce risk level with 1 after result
+    const iRiskLevel = Math.round((iCounterNone * (0 + 1) + iCounterVeryLow * (1 + 1) + iCounterLow * (2 + 1) + iCounterMedium * (3 + 1) + iCounterHigh * (4 + 1) + iCounterVeryHigh * (5 + 1)) / AppModule.GEOREF.length);
+
+    //dummy georef for risk text
+    const oGeoRefAll = new Georef(0, 0, 0, 0, '', '');
+    oGeoRefAll.setPrediction(iRiskLevel - 1);
+
     document.getElementById('otherstatcount').innerHTML = TwoDMapController.iBirdStrikeCount.toString();
     document.getElementById('otherstatcountgeoref').innerHTML = this.iGeoRefCounter.toString();
     document.getElementById('otherstatgeoref').innerHTML = AppModule.sCurrentGeoRef;
@@ -222,8 +262,8 @@ export class StatisticsController {
     document.getElementById('otherstatmostlevel').innerHTML = Bird.getHeightLevelStringByHeightLevel(iHeightLevelMost) + ' (' + aHeightLevelMost.length + ')';
 
     //TODO change when risk data is available
-    document.getElementById('otherstatrisk').innerHTML = '3 - Mittel';
-    document.getElementById('otherstatriskgeoref').innerHTML = '1 - Leicht';
+    document.getElementById('otherstatrisk').innerHTML = oGeoRefAll.getRiskText();
+    document.getElementById('otherstatriskgeoref').innerHTML = oCurrentGeoRef.getRiskText();
 
 
   }
@@ -260,9 +300,6 @@ export class StatisticsController {
       }
 
     }
-
-    console.log(this.iGeoRefCounter);
-
 
     return {
       datasets: [{

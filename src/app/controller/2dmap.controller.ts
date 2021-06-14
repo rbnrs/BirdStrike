@@ -36,6 +36,8 @@ export class TwoDMapController {
   static bShowGeoRefCounter: any;
   // tslint:disable-next-line: variable-name
   _timeLapseInterval: any;
+  static bShowGeoRefRisk: any;
+  static bTopoMapView: any;
 
   /**
    * set settings and config for mapview
@@ -44,15 +46,15 @@ export class TwoDMapController {
     // Set GeoRef
 
     AppModule.bStarted = true;
-    this.createGeoRefSquares('NK', 'E', 4, 'B', 46, 'QL');
-    this.createGeoRefSquares('PK', 'A', 15, 'B', 46, 'BL');
+    // this.createGeoRefSquares('NK', 'E', 4, 'B', 46, 'QL');
+    // this.createGeoRefSquares('PK', 'A', 15, 'B', 46, 'BL');
     this._ACCESS_TOKEN = 'pk.eyJ1IjoicmJybnMiLCJhIjoiY2tpNTIwcGJhMDJsZzJxbnF0YXhmMDY1NSJ9._cIg-xSzGD06aLiY3Ggsxg';
     this._MAP = new Map({
       accessToken: this._ACCESS_TOKEN,
       container: 'TwoDMap',
-      style: 'mapbox://styles/rbrns/cknzoq6re08pi17nbiuvtqrsl?optimize=true',
+      style: 'mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true',
       center: [10.447683, 51.163361],
-      minZoom: 5,
+      // minZoom: 5,
       zoom: 6
     });
 
@@ -68,55 +70,8 @@ export class TwoDMapController {
   }
 
   /**
-   *
-   * creates Array with GeoRef squares
-   * @param  sZone zone of georef grid. Square with 15 x 15
-   * @param  sStartLetter First Letter of GeoRef grid
-   * @param iStartLength Length of GeoRef grid
-   * @param  sLastLetter Last Letter of GeoRef grid
-   * @param iStartHeight start height of GeoRef grid
-   * @param  sEndPoint Last square in GeoRef Grid -> example: Draw AA - CL, then CL ist the last square
+   * handler for Listener Zoom in Map
    */
-  static createGeoRefSquares(
-    sZone: string,
-    sStartLetter: string,
-    iStartLength: number,
-    sLastLetter: string,
-    iStartHeight: number,
-    sEndPoint: string): void {
-
-    let bGeoRef = false;
-    let iHeight = iStartHeight;
-
-    while (!bGeoRef) {
-      let sFirstLetter = sStartLetter;
-      const iLength = iStartLength;
-      const iBegin = Georef.getStartPosition(sStartLetter);
-      const iStopPos = Georef.getStartPosition(sEndPoint[0]) + 2;
-      for (let i = 0; i < iStopPos - iBegin - 1; i++) {
-        const oGeoRef = new Georef(iLength + i, iHeight, iLength + i + 1, iHeight + 1, sFirstLetter + sLastLetter, sZone);
-        AppModule.GEOREF.push(oGeoRef);
-        sFirstLetter = Georef.nextChar(sFirstLetter);
-      }
-
-      iHeight++;
-      sLastLetter = Georef.nextChar(sLastLetter);
-
-      const oLastGeoRef = AppModule.GEOREF[AppModule.GEOREF.length - 1];
-
-      if (oLastGeoRef.sLetter === sEndPoint) {
-
-        bGeoRef = true;
-      }
-
-    }
-
-  }
-
-  static getMapObject(): Map {
-    return this._MAP;
-  }
-
   static mapOnZoomed(): void {
 
     const fCurrentZoom = this._MAP.getZoom();
@@ -136,6 +91,9 @@ export class TwoDMapController {
     }
   }
 
+  /**
+   * handler for Listener Loaded Map
+   */
   static mapOnLoaded(): void {
     this.createGeoRefGeoJson();
     this.createGeoZoneInner(4, 46, 17, 56);
@@ -195,7 +153,7 @@ export class TwoDMapController {
     this.timeLapseInterval = setInterval(() => {
       for (let iColor = 1; iColor <= 10; iColor++) {
         const layerId = 'minutes' + this._currentMinute + Colors.getColorByLevel(iColor);
-        if(AppModule.aSelectedLayers.includes(iColor)){
+        if (AppModule.aSelectedLayers.includes(iColor)) {
           if (this._MAP.getLayer(layerId)) {
             this._MAP.setLayoutProperty(layerId, 'visibility', 'visible');
           }
@@ -238,48 +196,12 @@ export class TwoDMapController {
    */
   static setInfoData(sGeoRef: string): void {
 
-    //TODO change look for data in DWD
-    $.ajax({
-      crossOrigin: true,
-      url: 'http://api.openweathermap.org/data/2.5/weather?lat=' + AppModule.oLatLng.lat + '&lon=' + AppModule.oLatLng.lng + '&appid=b7ecd94f60851402337142f6000793bb',
-      success: (oData) => {
-        const iWindDeg = oData.wind.deg;
-        const oElement = document.getElementById('birdstrike-direction-img') as HTMLImageElement;
-        // https://uni.edu/storm/Wind%20Direction%20slide.pdf
-
-        if ((iWindDeg >= 0 && iWindDeg < 22) || (iWindDeg <= 360 && iWindDeg > 338)) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Nord';
-          oElement.src = '../../../assets/wind-n.jpg';
-        } else if (iWindDeg >= 22 && iWindDeg < 67) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Nord-Ost';
-          oElement.src = '../../../assets/wind-ne.jpg';
-        } else if (iWindDeg >= 67 && iWindDeg < 112) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Ost';
-          oElement.src = '../../../assets/wind-e.jpg';
-        } else if (iWindDeg >= 112 && iWindDeg < 158) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Süd-Ost';
-          oElement.src = '../../../assets/wind-es.jpg';
-        } else if (iWindDeg >= 158 && iWindDeg < 203) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Süd';
-          oElement.src = '../../../assets/wind-s.jpg';
-        } else if (iWindDeg >= 203 && iWindDeg < 246) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Süd-West';
-          oElement.src = '../../../assets/wind-sw.jpg';
-        } else if (iWindDeg >= 246 && iWindDeg < 292) {
-          document.getElementById('birdstrike-direction').innerHTML = 'West';
-          oElement.src = '../../../assets/wind-w.jpg';
-        } else if (iWindDeg >= 292 && iWindDeg <= 338) {
-          document.getElementById('birdstrike-direction').innerHTML = 'Nord-West';
-          oElement.src = '../../../assets/wind-nw.jpg';
-        } else {
-          document.getElementById('birdstrike-direction').innerHTML = '-';
-        }
-
-      },
-      error: (oError) => {
-        console.log(oError);
+    for(let i = 0; i < AppModule.GEOREF.length; i++){
+      const oGeoRef = AppModule.GEOREF[i];
+      if(oGeoRef.sZone + oGeoRef.sLetter === sGeoRef){
+        document.getElementById('info-risk').innerHTML = oGeoRef.getRiskText();
       }
-    });
+    }
     document.getElementById('info-address').innerHTML = sGeoRef;
     document.getElementById('info-latlng').innerHTML = AppModule.oLatLng.lat + '<br>' + AppModule.oLatLng.lng;
     document.getElementById('info-bird-dir').style.display = 'block';
@@ -490,6 +412,7 @@ export class TwoDMapController {
       if (aLayers.hasOwnProperty(iLayer)) {
         const oLayer = aLayers[iLayer];
         if (oLayer.id.includes(sId)) {
+          debugger;
           this._MAP.setLayoutProperty(oLayer.id, 'visibility', 'visible', {
             validate: false
           });
@@ -548,6 +471,9 @@ export class TwoDMapController {
 
   }
 
+  /**
+   * clear Layers
+   */
   static clearLayers(): void {
     this._currentMinute = 0;
     clearInterval(this.timeLapseInterval);
@@ -680,6 +606,28 @@ export class TwoDMapController {
       this._MAP.on('render', oLayer.id, () => {});
     } else {
       this.noneVisibleLayers('georefcounter');
+    }
+  }
+
+  static async setGeoRefRisk(oEvent: any): Promise < void > {
+    const bChecked = oEvent.target.checked;
+    this.bShowGeoRefRisk = bChecked;
+    if (bChecked) {
+      const oLayer: any = this.visibleLayers('georefrisk');
+      this._MAP.on('render', oLayer.id, () => {});
+    } else {
+      this.noneVisibleLayers('georefrisk');
+    }
+  }
+
+  static async setMapStyles(oEvent: any): Promise<void> {
+
+    const bChecked = oEvent.target.checked;
+    this.bTopoMapView = bChecked;
+    if (bChecked) {
+      this._MAP.setStyle('mapbox://styles/rbrns/cknzoq6re08pi17nbiuvtqrsl');
+    } else {
+      this._MAP.setStyle('mapbox://styles/rbrns/cki68nmns9c6819qu9z6bakwr?optimize=true');
     }
   }
 
@@ -877,6 +825,7 @@ export class TwoDMapController {
   static async createGeoRefGeoJson(): Promise < void > {
     for (const oGeoRef of AppModule.GEOREF) {
 
+      console.log(oGeoRef);
       const sId = oGeoRef.sLetter + oGeoRef.sZone + 'areageorefzone';
       if (!this._MAP.getSource(sId)) {
         this._MAP.addSource(sId, {
@@ -962,6 +911,50 @@ export class TwoDMapController {
           visibility: this.bShowGeoRefCounter ? 'visible' : 'none',
           'text-field': oGeoRef.iCounter.toString(),
           'text-size': 13,
+        }
+      });
+    }
+  }
+
+  static createGeoRefRiskSquares(): void {
+
+    for (const oGeoRef of AppModule.GEOREF) {
+      const sId = "georefrisk" + oGeoRef.sZone + oGeoRef.sLetter;
+      if (!this._MAP.getSource(sId)) {
+
+        let aCoordinates = [
+          [oGeoRef.iLngStart, oGeoRef.iLatStart],
+          [oGeoRef.iLngEnd, oGeoRef.iLatStart],
+          [oGeoRef.iLngEnd, oGeoRef.iLatEnd],
+          [oGeoRef.iLngStart, oGeoRef.iLatEnd],
+        ];
+
+        this._MAP.addSource(sId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [aCoordinates]
+            }
+          }
+        });
+      }
+
+      if (this._MAP.getLayer(sId)) {
+        this._MAP.removeLayer(sId);
+      }
+
+      this._MAP.addLayer({
+        id: sId,
+        type: 'fill',
+        source: sId,
+        layout: {
+          visibility: this.bShowGeoRefRisk ? 'visible' : 'none',
+        },
+        paint: {
+          'fill-color': oGeoRef.getRiskColor(),
+          'fill-opacity': oGeoRef.getRiskColor() === "#000000" ? 0.0 : 0.5
         }
       });
 

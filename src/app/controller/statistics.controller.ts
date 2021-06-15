@@ -73,6 +73,9 @@ export class StatisticsController {
   static iHighestBirdGeoRef: number;
 
 
+  /**
+   * set Data to Bar Chart and create Bar chart
+   */
   static setDataToBarChart(): void{
 
     const oBarChartCanvas = document.getElementById('barchart');

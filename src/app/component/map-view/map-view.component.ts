@@ -66,7 +66,6 @@ import {
     }
 
     TwoDMapController.setMapSettings();
-    ThreeDMapController.initializeMap();
     this.setBirdstrikeRefreshInterval();
 
   }
@@ -137,7 +136,8 @@ import {
    */
   clearMapView(): void {
     if (this.is3D) {
-      ThreeDMapController.removeAllTimeLayers();
+      ThreeDMapController.removeAllTimeLayers(true);
+      ThreeDMapController.disableHeightLayers();
     } else {
       TwoDMapController.disableHeightLayers();
       TwoDMapController.clearLayers();
@@ -210,6 +210,8 @@ import {
     Promise.all(aPromises).then(() => {
         TwoDMapController.setGeoJsonMarkers();
         TwoDMapController.addTimeLayerToMap();
+        TwoDMapController.createGeoRefGeoJson();
+        TwoDMapController.createGeoZoneInner(4, 46, 17, 56);
         TwoDMapController.createGeoRefCounterCircles();
         TwoDMapController.createGeoRefRiskSquares();
         const dCurrentDate = new Date(Date.now());
@@ -426,6 +428,7 @@ import {
   }
 
   show3dViewer(): void {
+
     if (!this.is3D) {
       AppModule.oLoadingModal.open();
       TwoDMapController.disableHeightLayers();

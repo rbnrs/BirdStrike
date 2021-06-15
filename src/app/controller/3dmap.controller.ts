@@ -21,10 +21,9 @@ export class ThreeDMapController {
   // tslint:disable-next-line: variable-name
   static _oSceneView: SceneView;
 
-  static async initializeMap(): Promise < void > {
-
-  }
-
+  /**
+   * load SceneView for Georef and create Layers
+   */
   static async loadMap(): Promise < void > {
 
     try {
@@ -153,9 +152,12 @@ export class ThreeDMapController {
     }
   }
 
+  /**
+   * create TimeLayer for TimeLapse View
+   * @param iMinute number Minute of TimeLapse View
+   */
   static async createTimeLayer(iMinute: number): Promise < void > {
     const oBirdsCollection = AppModule.aTimeArrayBirds[iMinute];
-    let iCounter = 0;
     for (let i = 1; i <= 10; i++) {
       const oGraphicLayer = new GraphicsLayer();
       const sColor = Colors.getColorByLevel(i);
@@ -185,7 +187,6 @@ export class ThreeDMapController {
               symbol: simpleMarkerSymbol,
             });
             oGraphicLayer.add(pointGraphic);
-            iCounter++;
           }
         }
       }
@@ -216,7 +217,7 @@ export class ThreeDMapController {
       // repeat if minutes =
       if (this._currentMinute === 55) {
         this._currentMinute = 0;
-        this.removeAllTimeLayers();
+        this.removeAllTimeLayers(false);
       } else {
         this._currentMinute = this._currentMinute + 5;
       }
@@ -232,8 +233,9 @@ export class ThreeDMapController {
     for (let i = 1; i <= 10; i++) {
       // tslint:disable-next-line: no-shadowed-variable
       if (AppModule.aSelectedLayers.includes(i)) {
+        let sId = '3dMinute' + iMinute + Colors.getColorByLevel(i) + AppModule.sCurrentGeoRef;
         const oLayer = this.oMap.layers.find((oLayer) => {
-          return oLayer.id === '3dMinute' + iMinute + Colors.getColorByLevel(i) + AppModule.sCurrentGeoRef;
+          return oLayer.id === sId;
         });
 
         if (oLayer) {
@@ -244,16 +246,22 @@ export class ThreeDMapController {
     }
   }
 
-  static removeAllTimeLayers(): void {
+  static removeAllTimeLayers(bUncheck): void {
 
     for (let iMinute = 0; iMinute < 60; iMinute = iMinute + 5) {
-      const oLayer = this.oMap.findLayerById('3dMinute' + iMinute + AppModule.sCurrentGeoRef);
-      if (oLayer) {
-        oLayer.visible = false;
+      for(let iColor = 1; iColor <= 10; iColor++){
+        let sId = '3dMinute' + iMinute + Colors.getColorByLevel(iColor) + AppModule.sCurrentGeoRef;
+        const oLayer = this.oMap.findLayerById(sId);
+        if (oLayer) {
+          oLayer.visible = false;
+        }
+        if(bUncheck){
+          const oInput = document.getElementById('cbheight' + iColor) as HTMLInputElement;
+          oInput.checked = false;
+        }
       }
-    }
-    //document.getElementById('info-minute').innerHTML = this._currentMinute.toString();
 
+    }
   }
 
   static disableHeightLayers(): void {
@@ -274,11 +282,17 @@ export class ThreeDMapController {
       return oLayer.id === '3dHeight' + iHeightLevel + AppModule.sCurrentGeoRef;
     });
 
-    if (oLayer.visible) {
-      oLayer.visible = false;
-    } else {
-      oLayer.visible = true;
+    if(oLayer){
+      if (oLayer.visible) {
+        oLayer.visible = false;
+      } else {
+        oLayer.visible = true;
+      }
+    }else{
+      this.oMap.add(this.oHeightLayer[iHeightLevel]);
     }
+
+
   }
 
 }

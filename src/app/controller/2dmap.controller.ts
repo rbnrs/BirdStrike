@@ -95,8 +95,6 @@ export class TwoDMapController {
    * handler for Listener Loaded Map
    */
   static mapOnLoaded(): void {
-    this.createGeoRefGeoJson();
-    this.createGeoZoneInner(4, 46, 17, 56);
 
     this._MAP.on('click', (oEvent) => {
       AppModule.oLatLng = oEvent.lngLat;
@@ -196,9 +194,9 @@ export class TwoDMapController {
    */
   static setInfoData(sGeoRef: string): void {
 
-    for(let i = 0; i < AppModule.GEOREF.length; i++){
+    for (let i = 0; i < AppModule.GEOREF.length; i++) {
       const oGeoRef = AppModule.GEOREF[i];
-      if(oGeoRef.sZone + oGeoRef.sLetter === sGeoRef){
+      if (oGeoRef.sZone + oGeoRef.sLetter === sGeoRef) {
         document.getElementById('info-risk').innerHTML = oGeoRef.getRiskText();
       }
     }
@@ -412,7 +410,6 @@ export class TwoDMapController {
       if (aLayers.hasOwnProperty(iLayer)) {
         const oLayer = aLayers[iLayer];
         if (oLayer.id.includes(sId)) {
-          debugger;
           this._MAP.setLayoutProperty(oLayer.id, 'visibility', 'visible', {
             validate: false
           });
@@ -513,7 +510,11 @@ export class TwoDMapController {
     if (this.timeLapseInterval !== null) {
       this.clearMapView();
     }
-    const oSpan = oEvent.target.parentElement.children[1]; // Checkbox label
+    const oSpan = oEvent.target.parentElement.children[1];
+
+    const oInput = document.getElementById('cbheight' + iHeight) as HTMLInputElement;
+    oInput.checked = bChecked; // Checkbox label
+
     // hide if unselected
     if (bChecked) {
       if (this._MAP.getLayer('kft' + iHeight)) {
@@ -591,8 +592,9 @@ export class TwoDMapController {
     if (bChecked) {
       // tslint:disable-next-line: no-shadowed-variable
       const oLayer: any = this.visibleLayers('georefzone');
-      this._MAP.on('render', oLayer.id, () => {});
-
+      if (oLayer) {
+        this._MAP.on('render', oLayer.id, () => {});
+      }
     } else {
       this.noneVisibleLayers('georefzone');
     }
@@ -603,7 +605,9 @@ export class TwoDMapController {
     this.bShowGeoRefCounter = bChecked;
     if (bChecked) {
       const oLayer: any = this.visibleLayers('georefcounter');
-      this._MAP.on('render', oLayer.id, () => {});
+      if (oLayer) {
+        this._MAP.on('render', oLayer.id, () => {});
+      }
     } else {
       this.noneVisibleLayers('georefcounter');
     }
@@ -614,13 +618,15 @@ export class TwoDMapController {
     this.bShowGeoRefRisk = bChecked;
     if (bChecked) {
       const oLayer: any = this.visibleLayers('georefrisk');
-      this._MAP.on('render', oLayer.id, () => {});
+      if (oLayer) {
+        this._MAP.on('render', oLayer.id, () => {});
+      }
     } else {
       this.noneVisibleLayers('georefrisk');
     }
   }
 
-  static async setMapStyles(oEvent: any): Promise<void> {
+  static async setMapStyles(oEvent: any): Promise < void > {
 
     const bChecked = oEvent.target.checked;
     this.bTopoMapView = bChecked;
@@ -701,67 +707,72 @@ export class TwoDMapController {
 
     for (let iPos = 1; iPos < iEndLength - iStartLength; iPos++) {
       sId = iStartLength + iPos + iHeigth;
-      this._MAP.addSource(sId + 'vLinegeorefzone', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [iStartLength + iPos, iHeigth],
-              [iStartLength + iPos, iEndHeight]
-            ]
+      if(!this._MAP.getSource(sId + 'vLinegeorefzone')){
+        this._MAP.addSource(sId + 'vLinegeorefzone', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [iStartLength + iPos, iHeigth],
+                [iStartLength + iPos, iEndHeight]
+              ]
+            }
           }
-        }
-      });
+        });
 
-      this._MAP.addLayer({
-        id: sId + 'vLinegeorefzone',
-        type: 'line',
-        source: sId + 'vLinegeorefzone',
-        layout: {
-          visibility: 'none',
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#3F9B93',
-          'line-width': 1
-        }
-      });
+        this._MAP.addLayer({
+          id: sId + 'vLinegeorefzone',
+          type: 'line',
+          source: sId + 'vLinegeorefzone',
+          layout: {
+            visibility: 'none',
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#3F9B93',
+            'line-width': 1
+          }
+        });
+      }
+
     }
 
     for (let i = 1; i < iEndHeight - iStartHeight; i++) {
       sId = iStartHeight + i + iStartLength;
-
-      this._MAP.addSource(sId + 'hLinegeorefzone', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [iStartLength, iStartHeight + i],
-              [iEndLength, iStartHeight + i]
-            ]
+      if(!this._MAP.getSource(sId + 'hLinegeorefzone')){
+        this._MAP.addSource(sId + 'hLinegeorefzone', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [iStartLength, iStartHeight + i],
+                [iEndLength, iStartHeight + i]
+              ]
+            }
           }
-        }
-      });
+        });
 
-      this._MAP.addLayer({
-        id: sId + 'hLinegeorefzone',
-        type: 'line',
-        source: sId + 'hLinegeorefzone',
-        layout: {
-          visibility: 'none',
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#3F9B93',
-          'line-width': 1
-        }
-      });
+        this._MAP.addLayer({
+          id: sId + 'hLinegeorefzone',
+          type: 'line',
+          source: sId + 'hLinegeorefzone',
+          layout: {
+            visibility: 'none',
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#3F9B93',
+            'line-width': 1
+          }
+        });
+      }
+
     }
 
     this.createGeoRefZones([
@@ -788,34 +799,36 @@ export class TwoDMapController {
       const oGeoSecondRef = aGeoZone[i + 1];
 
       sId = oGeoFirstRef + '' + oGeoSecondRef + 'georefzone';
-      this._MAP.addSource(sId, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [oGeoFirstRef[1], oGeoFirstRef[2]],
-              [oGeoSecondRef[1], oGeoSecondRef[2]]
-            ]
+      if(!this._MAP.getSource(sId)){
+        this._MAP.addSource(sId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [oGeoFirstRef[1], oGeoFirstRef[2]],
+                [oGeoSecondRef[1], oGeoSecondRef[2]]
+              ]
+            }
           }
-        }
-      });
+        });
 
-      this._MAP.addLayer({
-        id: sId,
-        type: 'line',
-        source: sId,
-        layout: {
-          visibility: 'none',
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#3F9B93',
-          'line-width': 1
-        }
-      });
+        this._MAP.addLayer({
+          id: sId,
+          type: 'line',
+          source: sId,
+          layout: {
+            visibility: 'none',
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#3F9B93',
+            'line-width': 1
+          }
+        });
+      }
     }
   }
 
@@ -825,8 +838,7 @@ export class TwoDMapController {
   static async createGeoRefGeoJson(): Promise < void > {
     for (const oGeoRef of AppModule.GEOREF) {
 
-      console.log(oGeoRef);
-      const sId = oGeoRef.sLetter + oGeoRef.sZone + 'areageorefzone';
+      const sId = oGeoRef.sLetter + oGeoRef.sZone + 'georefzone';
       if (!this._MAP.getSource(sId)) {
         this._MAP.addSource(sId, {
           type: 'geojson',

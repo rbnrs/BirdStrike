@@ -141,7 +141,7 @@ export class TwoDMapController {
       return;
     }
 
-    this.disableHeightLayers();
+    this.disableHeightLayers(true);
 
     if (!this._currentMinute) {
       this._currentMinute = 0;
@@ -171,20 +171,36 @@ export class TwoDMapController {
   }
 
 
-  static disableHeightLayers(): void {
+  static disableHeightLayers(bChecked: boolean): void {
 
     for (let i = 1; i <= 10; i++) {
-      const oEvent = {
-        target: {
-          checked: false,
-          parentElement: {
-            children: [null, document.getElementById('spanheight' + i)]
+      let oEvent;
+      if (bChecked && AppModule.aSelectedLayers.includes(i)) {
+        oEvent = {
+          target: {
+            checked: true,
+            parentElement: {
+              children: [null, document.getElementById('spanheight' + i)]
+            }
           }
-        },
 
-      };
-      this.setMapHeightLayer(i, oEvent);
-    }
+        };
+      } else {
+        oEvent = {
+          target: {
+            checked: false,
+            parentElement: {
+              children: [null, document.getElementById('spanheight' + i)]
+            }
+          }
+
+        };
+      }
+
+      this.setMapHeightLayer(i, oEvent, false);
+
+    };
+
   }
 
 
@@ -504,19 +520,16 @@ export class TwoDMapController {
 
 
 
-  static setMapHeightLayer(iHeight: number, oEvent: any): void {
+  static setMapHeightLayer(iHeight: number, oEvent: any, bHeightSelection: boolean): void {
     const bChecked = oEvent.target.checked;
 
-    if (this.timeLapseInterval !== null) {
-      this.clearMapView();
-    }
     const oSpan = oEvent.target.parentElement.children[1];
 
     const oInput = document.getElementById('cbheight' + iHeight) as HTMLInputElement;
     oInput.checked = bChecked; // Checkbox label
 
     // hide if unselected
-    if (bChecked) {
+    if (bHeightSelection && bChecked) {
       if (this._MAP.getLayer('kft' + iHeight)) {
         this._MAP.setLayoutProperty('kft' + iHeight, 'visibility', 'visible');
         oSpan.style.color = Colors.getColorByLevel(iHeight);
@@ -707,7 +720,7 @@ export class TwoDMapController {
 
     for (let iPos = 1; iPos < iEndLength - iStartLength; iPos++) {
       sId = iStartLength + iPos + iHeigth;
-      if(!this._MAP.getSource(sId + 'vLinegeorefzone')){
+      if (!this._MAP.getSource(sId + 'vLinegeorefzone')) {
         this._MAP.addSource(sId + 'vLinegeorefzone', {
           type: 'geojson',
           data: {
@@ -742,7 +755,7 @@ export class TwoDMapController {
 
     for (let i = 1; i < iEndHeight - iStartHeight; i++) {
       sId = iStartHeight + i + iStartLength;
-      if(!this._MAP.getSource(sId + 'hLinegeorefzone')){
+      if (!this._MAP.getSource(sId + 'hLinegeorefzone')) {
         this._MAP.addSource(sId + 'hLinegeorefzone', {
           type: 'geojson',
           data: {
@@ -799,7 +812,7 @@ export class TwoDMapController {
       const oGeoSecondRef = aGeoZone[i + 1];
 
       sId = oGeoFirstRef + '' + oGeoSecondRef + 'georefzone';
-      if(!this._MAP.getSource(sId)){
+      if (!this._MAP.getSource(sId)) {
         this._MAP.addSource(sId, {
           type: 'geojson',
           data: {

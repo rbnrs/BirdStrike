@@ -118,6 +118,7 @@ import {
    * @param clickevent of Checkbox
    */
   changeMapView(iHeight: number, oEvent: any): void {
+    this.pauseTimeLapse();
     if (AppModule.aSelectedLayers.includes(iHeight)) {
       delete AppModule.aSelectedLayers[AppModule.aSelectedLayers.indexOf(iHeight)];
     } else {
@@ -127,7 +128,7 @@ import {
     if (this.is3D) {
       ThreeDMapController.setHeightLayer(iHeight);
     } else {
-      TwoDMapController.setMapHeightLayer(iHeight, oEvent);
+      TwoDMapController.setMapHeightLayer(iHeight, oEvent, true);
     }
   }
 
@@ -135,11 +136,14 @@ import {
    * clear Map View
    */
   clearMapView(): void {
+    this.pauseTimeLapse();
+    AppModule.aSelectedLayers = [];
     if (this.is3D) {
       ThreeDMapController.removeAllTimeLayers(true);
       ThreeDMapController.disableHeightLayers();
+
     } else {
-      TwoDMapController.disableHeightLayers();
+      TwoDMapController.disableHeightLayers(false);
       TwoDMapController.clearLayers();
     }
 
@@ -431,7 +435,7 @@ import {
 
     if (!this.is3D) {
       AppModule.oLoadingModal.open();
-      TwoDMapController.disableHeightLayers();
+      TwoDMapController.disableHeightLayers(false);
       ThreeDMapController.loadMap();
       document.getElementById('ThreeDMap').style.visibility = 'visible';
       document.getElementById('TwoDMap').style.visibility = 'hidden';

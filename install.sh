@@ -1,1 +1,1 @@
-npm install
+gnome-terminal -- npm install

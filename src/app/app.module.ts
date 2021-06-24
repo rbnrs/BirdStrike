@@ -22,7 +22,8 @@ const aRoutes: Routes = [
     BrowserModule,
     RouterModule.forRoot(aRoutes, {useHash: false})
   ],
-  providers: [],
+  providers: [
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule{
